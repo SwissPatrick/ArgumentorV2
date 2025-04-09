@@ -1,7 +1,7 @@
 
 import { FileText } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { getPlaceholderText } from "./suggestionUtils";
+import { getPlaceholderText } from "./SuggestionUtils";
 
 interface CustomPromptInputProps {
     customPrompt: string;
