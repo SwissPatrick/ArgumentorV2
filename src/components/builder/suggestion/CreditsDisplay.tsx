@@ -1,5 +1,5 @@
 
-import { Coins } from "lucide-react";
+import { Coins, Info } from "lucide-react";
 import { useState } from "react";
 
 interface CreditsDisplayProps {
@@ -9,6 +9,16 @@ interface CreditsDisplayProps {
 }
 
 export function CreditsDisplay({ basicCredits, advancedCredits, isLoading }: CreditsDisplayProps) {
+    const [showDebug, setShowDebug] = useState(false);
+
+    const toggleDebug = () => {
+        // In a development environment, allow debug view
+        if (process.env.NODE_ENV === 'development') {
+            setShowDebug(!showDebug);
+            console.log("Credits debug info:", { basicCredits, advancedCredits });
+        }
+    };
+
     return (
         <div className="flex flex-col gap-2 bg-muted/40 p-3 rounded-md">
             <span className="text-sm font-medium">Available Credits</span>
@@ -36,6 +46,24 @@ export function CreditsDisplay({ basicCredits, advancedCredits, isLoading }: Cre
                     )}
                 </div>
             </div>
+
+            {showDebug && (
+                <div className="mt-2 text-xs p-2 bg-background/80 rounded border border-amber-200">
+                    <p>Debug: Verified credits from Supabase</p>
+                    <p>Basic: {basicCredits}</p>
+                    <p>Advanced: {advancedCredits}</p>
+                </div>
+            )}
+
+            {process.env.NODE_ENV === 'development' && (
+                <button
+                    onClick={toggleDebug}
+                    className="mt-1 flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                    <Info className="h-3 w-3 mr-1" />
+                    Debug info
+                </button>
+            )}
         </div>
     );
 }

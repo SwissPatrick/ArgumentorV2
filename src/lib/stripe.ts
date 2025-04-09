@@ -7,7 +7,6 @@
 
 import { upgradeSubscription as updateUserSubscription, subscriptionTiers } from "./subscription";
 
-
 // Stripe checkout URLs for each subscription tier
 const STRIPE_CHECKOUT_URLS = {
     free: "", // No checkout needed for free tier
@@ -31,8 +30,12 @@ export const redirectToStripeCheckout = (tierId: string, userId?: string) => {
         return true;
     }
 
+    // Add parameters to the success URL to identify the tier and user
+    const successUrl = `${window.location.origin}/payment-success?tier=${encodeURIComponent(tierId)}`;
+
     // Redirect to Stripe checkout, adding user ID as a parameter
-    const urlWithParams = `${checkoutUrl}?client_reference_id=${encodeURIComponent(userId || '')}`;
+    const urlWithParams = `${checkoutUrl}?client_reference_id=${encodeURIComponent(userId || '')}&success_url=${encodeURIComponent(successUrl)}`;
+    console.log(`Redirecting to Stripe checkout for tier: ${tierId}`, { urlWithParams });
     window.location.href = urlWithParams;
     return true;
 };
@@ -43,11 +46,31 @@ export const redirectToStripeCheckout = (tierId: string, userId?: string) => {
  */
 export const verifyStripePurchase = async (tierId: string, userId: string): Promise<boolean> => {
     // In a real implementation, this would verify the purchase with Stripe's API
-    // For now, we'll just simulate a successful purchase by updating the user's subscription
+    // For now, we'll simulate a successful purchase by updating the user's subscription
+
+    console.log(`Verifying Stripe purchase for tier: ${tierId} and user: ${userId}`);
 
     try {
+        // Get the tier information to confirm what credits should be assigned
+        const tierInfo = subscriptionTiers.find(tier => tier.id === tierId);
+
+        if (!tierInfo) {
+            console.error(`Invalid tier ID in verification: ${tierId}`);
+            return false;
+        }
+
+        console.log(`Upgrading subscription to ${tierInfo.name} with ${tierInfo.basicCredits} basic credits and ${tierInfo.advancedCredits} advanced credits`);
+
         // Update the user's subscription
-        return await updateUserSubscription(tierId);
+        const success = await updateUserSubscription(tierId);
+
+        if (success) {
+            console.log(`Subscription successfully upgraded to ${tierInfo.name}`);
+        } else {
+            console.error(`Failed to upgrade subscription to ${tierInfo.name}`);
+        }
+
+        return success;
     } catch (error) {
         console.error("Error verifying Stripe purchase:", error);
         return false;

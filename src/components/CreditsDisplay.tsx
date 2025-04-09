@@ -1,5 +1,6 @@
+
 import { getUserSubscription } from "@/lib/subscription";
-import { Coins, AlertCircle, Crown } from "lucide-react";
+import { Coins, AlertCircle, Crown, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ export const CreditsDisplay = () => {
     const [basicCredits, setBasicCredits] = useState<number | null>(null);
     const [advancedCredits, setAdvancedCredits] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [refreshKey, setRefreshKey] = useState(0); // Used to trigger refresh
 
     useEffect(() => {
         if (user) {
@@ -20,12 +22,14 @@ export const CreditsDisplay = () => {
         } else {
             setIsLoading(false);
         }
-    }, [user]);
+    }, [user, refreshKey]);
 
     const loadCredits = async () => {
         setIsLoading(true);
         try {
+            console.log("Fetching user subscription data from Supabase...");
             const subscription = await getUserSubscription();
+            console.log("User subscription data:", subscription);
             setBasicCredits(subscription.basicCreditsRemaining);
             setAdvancedCredits(subscription.advancedCreditsRemaining);
         } catch (error) {
@@ -38,6 +42,10 @@ export const CreditsDisplay = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleRefresh = () => {
+        setRefreshKey(prev => prev + 1); // Trigger a refresh
     };
 
     if (!user) {
@@ -97,6 +105,15 @@ export const CreditsDisplay = () => {
                     <span>{advancedCredits}</span>
                     <span className="text-xs text-muted-foreground ml-1">adv</span>
                 </div>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 ml-2 -mr-1"
+                    onClick={handleRefresh}
+                    title="Refresh credits"
+                >
+                    <RefreshCw className="h-3 w-3" />
+                </Button>
             </div>
         </div>
     );

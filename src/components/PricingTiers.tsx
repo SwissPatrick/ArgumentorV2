@@ -5,46 +5,68 @@ import { Check } from "lucide-react";
 import { subscriptionTiers, type SubscriptionTier } from "@/lib/subscription";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { redirectToStripeCheckout, verifyStripePurchase } from "@/lib/stripe";
 
 export const PricingTiers = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
     const { user } = useAuth();
+
+    // Check for redirect from auth with tier parameter
+    useEffect(() => {
+        // Check if we just came back from auth page with a tier to purchase
+        const params = new URLSearchParams(location.search);
+        const tierToSubscribe = params.get('subscribe');
+
+        if (user && tierToSubscribe) {
+            // User is logged in and has a tier to subscribe to from auth redirection
+            const tier = subscriptionTiers.find(t => t.id === tierToSubscribe);
+            if (tier) {
+                handleSelectTier(tier);
+
+                // Clean up URL to avoid double-processing
+                navigate(location.pathname, { replace: true });
+            }
+        }
+    }, [user, location.search]);
 
     const handleSelectTier = (tier: SubscriptionTier) => {
         setSelectedTier(tier);
 
         // Check if user is logged in
         if (!user) {
-            // Redirect to auth page with return URL
-            navigate(`/auth?redirectTo=${encodeURIComponent('/pricing')}`);
+            // Redirect to auth page with return URL AND tier ID
+            const redirectParams = new URLSearchParams();
+            redirectParams.set('redirectTo', '/pricing');
+            redirectParams.set('subscribe', tier.id);
+
+            navigate(`/auth?${redirectParams.toString()}`);
             return;
         }
 
         if (tier.price === 0) {
             // Free tier - apply immediately
             verifyStripePurchase(tier.id, user.id)
-                .then(() => {
-                    toast({
-                        title: "Subscription updated",
-                        description: `You're now on the ${tier.name} plan.`,
-                    });
-                    navigate('/builder');
+                .then((success) => {
+                    if (success) {
+                        toast({
+                            title: "Subscription updated",
+                            description: `You're now on the ${tier.name} plan.`,
+                        });
+                        navigate('/builder');
+                    }
                 });
             return;
         }
 
-        // If it's the Basic tier, redirect directly to Stripe
-        if (tier.id === "basic") {
-            const stripeUrl = "https://buy.stripe.com/dR6bKg7gG47Aa0o8ww";
-            // Add user ID as a URL parameter to identify the user when they return
-            const urlWithParams = `${stripeUrl}?client_reference_id=${encodeURIComponent(user.id)}`;
-            window.location.href = urlWithParams;
+        // For paid tiers, use redirectToStripeCheckout
+        if (tier.id === "basic" || tier.id === "premium") {
+            redirectToStripeCheckout(tier.id, user.id);
             return;
         }
 

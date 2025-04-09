@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2, XCircle, CreditCard, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { subscriptionTiers } from "@/lib/subscription";
+import { getUserSubscription } from "@/lib/subscription";
 
 const StripeSuccess = () => {
     const [searchParams] = useSearchParams();
@@ -16,8 +17,13 @@ const StripeSuccess = () => {
     const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(true);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [subscriptionDetails, setSubscriptionDetails] = useState<{
+        basicCredits: number;
+        advancedCredits: number;
+        tierName: string;
+    } | null>(null);
 
-    // The tier ID would typically come from Stripe's client_reference_id parameter
+    // Get tier ID from URL parameter
     const tierId = searchParams.get("tier") || "basic";
 
     // Get tier information
@@ -31,17 +37,26 @@ const StripeSuccess = () => {
             // Verify payment with Stripe
             const verifyPayment = async () => {
                 try {
-                    // For Stripe, we can directly upgrade the subscription
-                    // In a production app, you would verify with the Stripe API
-                    // that the payment was successful before upgrading
-                    const success = await upgradeSubscription(tierId);
+                    console.log(`Processing purchase for tier: ${tierId}, user: ${user.id}`);
 
+                    // Verify and process the purchase
+                    const success = await verifyStripePurchase(tierId, user.id);
                     setIsSuccess(success);
 
                     if (success) {
+                        // Get updated subscription details to confirm the change
+                        const subscription = await getUserSubscription();
+                        console.log("Updated subscription details:", subscription);
+
+                        setSubscriptionDetails({
+                            basicCredits: subscription.basicCreditsRemaining,
+                            advancedCredits: subscription.advancedCreditsRemaining,
+                            tierName: subscription.tier
+                        });
+
                         toast({
                             title: "Payment successful",
-                            description: `Thank you for subscribing! Your account has been upgraded.`,
+                            description: `Thank you for subscribing! Your account has been upgraded to the ${tierInfo?.name} plan.`,
                         });
                     } else {
                         toast({
@@ -65,7 +80,7 @@ const StripeSuccess = () => {
 
             verifyPayment();
         }
-    }, [user, tierId]);
+    }, [user, tierId, tierInfo?.name]);
 
     const handleContinue = () => {
         navigate("/builder");
@@ -94,21 +109,31 @@ const StripeSuccess = () => {
                                 Thank you for your subscription. Your account has been upgraded to the {tierInfo?.name} plan.
                             </p>
 
-                            {tierInfo && (
+                            {(tierInfo || subscriptionDetails) && (
                                 <div className="mb-8 p-6 bg-muted/30 rounded-lg">
                                     <h2 className="text-xl font-semibold mb-4">Your New Benefits</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="bg-background p-4 rounded-md flex flex-col items-center">
                                             <Coins className="h-8 w-8 text-amber-500 mb-2" />
-                                            <span className="text-2xl font-bold">{tierInfo.basicCredits}</span>
+                                            <span className="text-2xl font-bold">
+                        {subscriptionDetails?.basicCredits || tierInfo?.basicCredits}
+                      </span>
                                             <span className="text-sm text-muted-foreground">Basic Credits</span>
                                         </div>
                                         <div className="bg-background p-4 rounded-md flex flex-col items-center">
                                             <Coins className="h-8 w-8 text-purple-500 mb-2" />
-                                            <span className="text-2xl font-bold">{tierInfo.advancedCredits}</span>
+                                            <span className="text-2xl font-bold">
+                        {subscriptionDetails?.advancedCredits || tierInfo?.advancedCredits}
+                      </span>
                                             <span className="text-sm text-muted-foreground">Advanced Credits</span>
                                         </div>
                                     </div>
+
+                                    {subscriptionDetails && (
+                                        <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-md text-green-700">
+                                            <p>Your credits have been successfully added to your account!</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

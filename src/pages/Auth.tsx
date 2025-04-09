@@ -13,7 +13,10 @@ const Auth = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { user, loading, userIsEmailVerified } = useAuth();
+
+    // Get redirect parameters
     const redirectTo = searchParams.get("redirectTo") || "/";
+    const subscribeTier = searchParams.get("subscribe");
 
     // Check for email verification success parameter
     const emailVerified = searchParams.get("email_confirmed") === "true";
@@ -26,11 +29,20 @@ const Auth = () => {
                 description: "You are already signed in",
             });
 
-            // Use path from URL or default to home
-            console.log("Redirecting authenticated user to:", redirectTo);
-            navigate(redirectTo, { replace: true });
+            // If there's a subscription tier to process, include it in the redirect
+            if (subscribeTier) {
+                const redirectUrl = new URL(redirectTo, window.location.origin);
+                redirectUrl.searchParams.set('subscribe', subscribeTier);
+
+                console.log("Redirecting authenticated user with subscription:", redirectUrl.pathname + redirectUrl.search);
+                navigate(redirectUrl.pathname + redirectUrl.search, { replace: true });
+            } else {
+                // Regular redirect without subscription
+                console.log("Redirecting authenticated user to:", redirectTo);
+                navigate(redirectTo, { replace: true });
+            }
         }
-    }, [user, loading, navigate, redirectTo, userIsEmailVerified]);
+    }, [user, loading, navigate, redirectTo, userIsEmailVerified, subscribeTier]);
 
     return (
         <div className="flex flex-col min-h-screen">
