@@ -1,0 +1,13 @@
+project_id = "tlabsxcfgtiqmktltvbc"
+
+[functions.analyze-argument]
+verify_jwt = true
+
+[functions.improve-block]
+verify_jwt = true
+
+[functions.generate-suggestion]
+verify_jwt = true
+
+[functions.check-admin]
+verify_jwt = true
