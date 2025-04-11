@@ -8,7 +8,8 @@ import { useAuth } from "./AuthProvider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Gift } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 // Password validation regex
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -20,7 +21,17 @@ export function LoginForm() {
     const [passwordError, setPasswordError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [emailVerificationSent, setEmailVerificationSent] = useState(false);
+    const [referralCode, setReferralCode] = useState<string | null>(null);
     const { signIn, signUp } = useAuth();
+    const [searchParams] = useSearchParams();
+
+    // Check for referral code in URL
+    useEffect(() => {
+        const code = searchParams.get("referral");
+        if (code) {
+            setReferralCode(code);
+        }
+    }, [searchParams]);
 
     const validatePassword = (password: string) => {
         if (password.length < 8) {
@@ -96,7 +107,12 @@ export function LoginForm() {
         setIsSubmitting(true);
 
         try {
-            await signUp(email, password);
+            // Include referral code in user metadata if present
+            const options = referralCode
+                ? { referralCode: referralCode.toUpperCase() }
+                : undefined;
+
+            await signUp(email, password, options);
             setEmailVerificationSent(true);
         } catch (error: any) {
             let errorMessage = error.message;
@@ -140,6 +156,16 @@ export function LoginForm() {
                         <AlertDescription>
                             We've sent a verification email to <strong>{email}</strong>.
                             Please check your inbox and verify your email before logging in.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {referralCode && (
+                    <Alert className="mx-6 mb-4 bg-green-50 border-green-200">
+                        <Gift className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-600">
+                            Referral code <strong>{referralCode}</strong> will be applied to your account.
+                            Both you and the person who referred you will receive bonus credits!
                         </AlertDescription>
                     </Alert>
                 )}

@@ -7,7 +7,7 @@ import { Footer } from "@/components/Footer";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, Info } from "lucide-react";
+import { CheckCircle2, Info, Gift } from "lucide-react";
 
 const Auth = () => {
     const navigate = useNavigate();
@@ -17,6 +17,7 @@ const Auth = () => {
     // Get redirect parameters
     const redirectTo = searchParams.get("redirectTo") || "/";
     const subscribeTier = searchParams.get("subscribe");
+    const referralCode = searchParams.get("referral");
 
     // Check for email verification success parameter
     const emailVerified = searchParams.get("email_confirmed") === "true";
@@ -54,6 +55,13 @@ const Auth = () => {
                         <p className="text-muted-foreground mt-2">
                             Sign in or create an account to access your account and build powerful arguments
                         </p>
+
+                        {referralCode && (
+                            <div className="inline-flex items-center px-3 py-1 mt-3 text-sm bg-green-50 text-green-800 rounded-full border border-green-200">
+                                <Gift className="h-4 w-4 mr-1.5" />
+                                <span>Referred by friend with code <strong>{referralCode}</strong></span>
+                            </div>
+                        )}
                     </div>
 
                     {emailVerified && (

@@ -5,9 +5,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import Index from "./pages/Index";
 import Builder from "./pages/Builder";
-import About from "./pages/About.tsx";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Pricing from "./pages/Pricing";
@@ -16,12 +17,13 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
-import { AuthProvider } from "./components/auth/AuthProvider";
 import HowItWorks from "./pages/HowItWorks";
 import MyArguments from "./pages/MyArguments";
 import Examples from "./pages/Examples";
 import Tutorials from "./pages/Tutorials";
 import StripeSuccess from "./pages/StripeSuccess";
+import VerifyEmail from "./pages/VerifyEmail";
+import Account from "./pages/Account";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,14 @@ const App = () => (
                                 </ProtectedRoute>
                             }
                         />
+                        <Route
+                            path="/account"
+                            element={
+                                <ProtectedRoute>
+                                    <Account />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route path="/how-it-works" element={<HowItWorks />} />
                         <Route path="/examples" element={<Examples />} />
                         <Route path="/tutorials" element={<Tutorials />} />
@@ -61,6 +71,7 @@ const App = () => (
                         <Route path="/terms" element={<Terms />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/auth" element={<Auth />} />
+                        <Route path="/verify-email" element={<VerifyEmail />} />
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                 </BrowserRouter>

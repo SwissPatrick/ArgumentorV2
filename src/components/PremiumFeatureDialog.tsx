@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { toast } from "@/hooks/use-toast";
 
 interface PremiumFeatureDialogProps {
     isOpen: boolean;
@@ -13,10 +15,22 @@ interface PremiumFeatureDialogProps {
 
 export function PremiumFeatureDialog({ isOpen, onClose, featureName, description }: PremiumFeatureDialogProps) {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const handleUpgrade = () => {
-        navigate('/pricing');
+        // Close the dialog first
         onClose();
+
+        // Show feedback to user
+        toast({
+            title: "Navigating to pricing page",
+            description: "Please wait while we redirect you to our pricing options.",
+        });
+
+        console.log("Navigating to pricing page from PremiumFeatureDialog");
+
+        // Navigate directly to pricing page with hash for pricing tiers section
+        navigate('/pricing#pricing-tiers');
     };
 
     return (
@@ -50,7 +64,11 @@ export function PremiumFeatureDialog({ isOpen, onClose, featureName, description
                     <Button variant="outline" onClick={onClose} className="sm:w-auto w-full">
                         Continue with Free
                     </Button>
-                    <Button onClick={handleUpgrade} className="sm:w-auto w-full">
+                    <Button
+                        onClick={handleUpgrade}
+                        className="sm:w-auto w-full"
+                        data-testid="upgrade-button"
+                    >
                         Upgrade Now
                     </Button>
                 </DialogFooter>

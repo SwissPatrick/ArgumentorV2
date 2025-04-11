@@ -2,20 +2,31 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PricingTiers } from "@/components/PricingTiers";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const Pricing = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, userIsEmailVerified } = useAuth();
+    const pricingRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         // If already logged in with email verified, redirect to builder
-        if (user && userIsEmailVerified) {
+        // But don't redirect if we're here to see pricing tiers (from the hash)
+        if (user && userIsEmailVerified && !location.hash) {
             navigate('/builder');
         }
-    }, [user, userIsEmailVerified, navigate]);
+
+        // If there's a pricing-tiers hash, scroll to it
+        if (location.hash === '#pricing-tiers' && pricingRef.current) {
+            // Using setTimeout to ensure the DOM is fully loaded
+            setTimeout(() => {
+                pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    }, [user, userIsEmailVerified, navigate, location.hash]);
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -50,7 +61,9 @@ const Pricing = () => {
                         </div>
                     </div>
                 </div>
-                <PricingTiers />
+                <div ref={pricingRef}>
+                    <PricingTiers />
+                </div>
             </main>
             <Footer />
         </div>

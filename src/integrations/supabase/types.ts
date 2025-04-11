@@ -36,6 +36,51 @@ export type Database = {
                 }
                 Relationships: []
             }
+            referral_codes: {
+                Row: {
+                    code: string
+                    created_at: string
+                    id: string
+                    user_id: string
+                }
+                Insert: {
+                    code: string
+                    created_at?: string
+                    id?: string
+                    user_id: string
+                }
+                Update: {
+                    code?: string
+                    created_at?: string
+                    id?: string
+                    user_id?: string
+                }
+                Relationships: []
+            }
+            referral_uses: {
+                Row: {
+                    id: string
+                    referral_code: string
+                    referred_id: string
+                    referrer_id: string
+                    used_at: string
+                }
+                Insert: {
+                    id?: string
+                    referral_code: string
+                    referred_id: string
+                    referrer_id: string
+                    used_at?: string
+                }
+                Update: {
+                    id?: string
+                    referral_code?: string
+                    referred_id?: string
+                    referrer_id?: string
+                    used_at?: string
+                }
+                Relationships: []
+            }
             saved_arguments: {
                 Row: {
                     content: Json
@@ -146,7 +191,18 @@ export type Database = {
             [_ in never]: never
         }
         Functions: {
-            [_ in never]: never
+            apply_referral_bonus: {
+                Args: { _referral_code: string; _referred_user_id: string }
+                Returns: boolean
+            }
+            create_referral_code_for_new_user_manual: {
+                Args: { user_id: string }
+                Returns: boolean
+            }
+            generate_random_code: {
+                Args: Record<PropertyKey, never>
+                Returns: string
+            }
         }
         Enums: {
             [_ in never]: never

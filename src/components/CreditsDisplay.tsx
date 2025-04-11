@@ -1,12 +1,13 @@
 
 import { getUserSubscription } from "@/lib/subscription";
-import { Coins, AlertCircle, Crown, RefreshCw } from "lucide-react";
+import { Coins, AlertCircle, Crown, RefreshCw, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "./ui/separator";
+import { RedeemReferralDialog } from "./referral/RedeemReferralDialog";
 
 export const CreditsDisplay = () => {
     const navigate = useNavigate();
@@ -115,6 +116,7 @@ export const CreditsDisplay = () => {
                     <RefreshCw className="h-3 w-3" />
                 </Button>
             </div>
+            <RedeemReferralDialog />
         </div>
     );
 };

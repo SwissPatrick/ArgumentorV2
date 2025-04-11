@@ -1,4 +1,3 @@
-
 export function Footer() {
     return (
         <footer className="bg-muted">
@@ -7,7 +6,7 @@ export function Footer() {
                     <div className="md:col-span-2">
                         <div className="flex items-center mb-4">
                             <img
-                                src="/images/argumentorLogo.png"
+                                src="/lovable-uploads/e6998c2e-484f-48f3-98b4-6596e29095f2.png"
                                 alt="Argumentor Logo"
                                 className="h-10 mr-2"
                             />
@@ -17,7 +16,7 @@ export function Footer() {
                         </p>
                         <div className="mt-4">
                             <p className="text-muted-foreground">
-                                <strong>Contact:</strong> argumentorteam@outlook.com
+                                <strong>Contact:</strong> argumentorteam@gmail.com
                             </p>
                         </div>
                     </div>

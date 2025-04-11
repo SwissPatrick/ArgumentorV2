@@ -1,14 +1,16 @@
-
 import { Button } from "@/components/ui/button";
 import { CreditsDisplay } from "@/components/CreditsDisplay";
 import { Download, Save, Share2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface BuilderHeaderProps {
     title: string;
 }
 
 export function BuilderHeader({ title }: BuilderHeaderProps) {
+    const navigate = useNavigate();
+
     const saveArgument = () => {
         // In a real app, save to database here
         toast({
@@ -32,6 +34,17 @@ export function BuilderHeader({ title }: BuilderHeaderProps) {
             title: "Link copied",
             description: "Shareable link has been copied to clipboard",
         });
+    };
+
+    const navigateToPricing = () => {
+        // Show navigation feedback
+        toast({
+            title: "Navigating to pricing page",
+            description: "Please wait while we redirect you to our pricing options.",
+        });
+
+        // Navigate to pricing page with fragment identifier
+        navigate('/pricing#pricing-tiers');
     };
 
     return (

@@ -1,11 +1,10 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { subscriptionTiers, type SubscriptionTier } from "@/lib/subscription";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { redirectToStripeCheckout, verifyStripePurchase } from "@/lib/stripe";
@@ -13,11 +12,12 @@ import { redirectToStripeCheckout, verifyStripePurchase } from "@/lib/stripe";
 export const PricingTiers = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const pricingRef = useRef<HTMLDivElement>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
     const { user } = useAuth();
 
-    // Check for redirect from auth with tier parameter
+    // Check for redirect from auth with tier parameter and handle hash scrolling
     useEffect(() => {
         // Check if we just came back from auth page with a tier to purchase
         const params = new URLSearchParams(location.search);
@@ -33,7 +33,25 @@ export const PricingTiers = () => {
                 navigate(location.pathname, { replace: true });
             }
         }
-    }, [user, location.search]);
+
+        // Handle scrolling to pricing section when hash is present
+        const handleHashScroll = () => {
+            if (location.hash === '#pricing-tiers' && pricingRef.current) {
+                // Use setTimeout to ensure the DOM is ready
+                setTimeout(() => {
+                    pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        };
+
+        // Call immediately and also set up for when hash changes
+        handleHashScroll();
+
+        // Clean up the event listener
+        return () => {
+            // No cleanup needed for this implementation
+        };
+    }, [user, location.search, location.hash, navigate]);
 
     const handleSelectTier = (tier: SubscriptionTier) => {
         setSelectedTier(tier);
@@ -90,7 +108,7 @@ export const PricingTiers = () => {
     };
 
     return (
-        <div className="py-12 bg-background">
+        <div id="pricing-tiers" ref={pricingRef} className="py-12 bg-background">
             <div className="container px-4 mx-auto">
                 <div className="mb-10">
                     <h2 className="text-3xl font-bold">Choose Your Plan</h2>

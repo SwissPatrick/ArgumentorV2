@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { generateCSRFToken, validateCSRFToken } from "@/lib/csrf";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define the form validation schema
 const formSchema = z.object({
@@ -67,12 +68,20 @@ const Contact = () => {
                 throw new Error("Security validation failed. Please refresh the page and try again.");
             }
 
-            // Here you would normally send the data to a server
-            // For this example, we're simulating sending to argumentorteam@outlook.com
-            console.log("Sending email to argumentorteam@outlook.com", data);
+            // Call the Supabase Edge Function to send the email
+            const { error } = await supabase.functions.invoke('send-contact-email', {
+                body: {
+                    name: data.name,
+                    email: data.email,
+                    subject: data.subject,
+                    message: data.message,
+                    to: 'argumentorteam@gmail.com' // Hardcode the recipient
+                }
+            });
 
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (error) {
+                throw new Error("There was a problem sending your message. Please try again later.");
+            }
 
             toast({
                 title: "Message sent successfully",
@@ -121,7 +130,7 @@ const Contact = () => {
                                     <div>
                                         <h3 className="font-medium">Email Us</h3>
                                         <p className="text-muted-foreground">
-                                            Customer support: <a href="mailto:argumentorteam@outlook.com" className="text-primary hover:underline">argumentorteam@outlook.com</a>
+                                            Customer support: <a href="mailto:argumentorteam@gmail.com" className="text-primary hover:underline">argumentorteam@gmail.com</a>
                                         </p>
                                     </div>
                                 </div>
