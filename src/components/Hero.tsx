@@ -13,7 +13,13 @@ export function Hero() {
     const phrases = [
         "strengthen your arguments",
         "challenge assumptions",
-        "build with logic"
+        "build with logic",
+        "solidify your case",
+        "improve your reasoning",
+        "clarify your stance",
+        "enhance your evidence",
+        "polish you rhetoric"
+
     ];
 
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
