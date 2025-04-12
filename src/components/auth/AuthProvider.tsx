@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,8 +16,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Custom auth configuration with shorter session duration
-// Supabase default is 1 week, we'll set it to 8 hours (28800 seconds)
 const AUTH_SESSION_EXPIRY = 28800;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -30,16 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [adminCheckAttempted, setAdminCheckAttempted] = useState(false);
     const adminCheckInProgress = useRef(false);
 
-    // Check if a user is an admin - now uses the cached email or default to false
     const checkIsAdmin = async (userEmail?: string | null) => {
         if (!userEmail || adminCheckInProgress.current) return false;
 
         try {
-            // Set the admin check flag to prevent multiple simultaneous calls
             adminCheckInProgress.current = true;
             console.log("AuthProvider - Checking admin status for:", userEmail);
 
-            // Set a timeout to prevent hanging indefinitely
             const timeoutPromise = new Promise<{data?: {isAdmin: boolean}, error?: Error}>((resolve) => {
                 setTimeout(() => {
                     console.log("AuthProvider - Admin check timed out after 5 seconds");
@@ -47,12 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }, 5000);
             });
 
-            // Call the check-admin edge function to verify if the user is an admin
             const functionPromise = supabase.functions.invoke('check-admin', {
                 body: { email: userEmail.toLowerCase() }
             });
 
-            // Race the function call with the timeout
             const result = await Promise.race([functionPromise, timeoutPromise]);
 
             if (result.error) {
@@ -75,21 +67,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("AuthProvider - Initializing auth state");
         let didCancel = false;
 
-        // Set up auth state listener first
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, newSession) => {
+            async (event, newSession) => {
                 console.log("AuthProvider - Auth state changed:", event);
 
                 if (didCancel) return;
 
-                // Only update state if values are different to avoid unnecessary renders
                 if (newSession?.user?.id !== user?.id) {
                     setSession(newSession);
                     setUser(newSession?.user ?? null);
                     setUserIsEmailVerified(!!newSession?.user?.email_confirmed_at);
                 }
 
-                // Check admin status if user is logged in - Wrap in setTimeout to avoid React errors
                 if (newSession?.user?.email && !adminCheckInProgress.current) {
                     setTimeout(async () => {
                         if (didCancel) return;
@@ -102,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         );
 
-        // Then check for existing session - only if we haven't loaded it already
         const checkForExistingSession = async () => {
             try {
                 console.log("AuthProvider - Checking for existing session");
@@ -110,12 +98,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 if (didCancel) return;
 
-                // Update state with session data
                 setSession(data.session);
                 setUser(data.session?.user ?? null);
                 setUserIsEmailVerified(!!data.session?.user?.email_confirmed_at);
 
-                // Check admin status if user is logged in
                 if (data.session?.user?.email && !adminCheckInProgress.current) {
                     const adminStatus = await checkIsAdmin(data.session.user.email);
                     if (!didCancel) {
@@ -123,7 +109,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }
                 }
 
-                // Always complete loading after session check
                 if (!didCancel) {
                     setLoading(false);
                 }
@@ -142,13 +127,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         checkForExistingSession();
 
-        // Safety timeout - ensure loading state completes even if something goes wrong
         const safetyTimeout = setTimeout(() => {
             if (!didCancel && loading) {
                 console.log("AuthProvider - Safety timeout triggered to complete loading");
                 setLoading(false);
             }
-        }, 5000); // Reduced from 8000 to 5000ms for faster response
+        }, 5000);
 
         return () => {
             didCancel = true;
@@ -163,13 +147,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             let response;
 
             if (password) {
-                // Sign in with email and password
                 response = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
             } else {
-                // Sign in with OTP (magic link) as fallback
                 response = await supabase.auth.signInWithOtp({
                     email,
                     options: {
@@ -191,7 +173,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw response.error;
             }
 
-            // Check if email is verified
             if (response.data.user && !response.data.user.email_confirmed_at) {
                 console.log("AuthProvider - Email not confirmed");
                 throw new Error("Email not confirmed. Please check your inbox for verification instructions.");
@@ -212,14 +193,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signUp = async (email: string, password: string, options?: Record<string, any>) => {
         try {
+            console.log("AuthProvider - Attempting sign up for:", email, "with options:", options);
+
             const signUpOptions = {
                 email,
                 password,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/auth`,
+                    emailRedirectTo: `${window.location.origin}/auth?email_confirmed=true`,
                     data: {
                         signUpDate: new Date().toISOString(),
-                        ...(options || {})
                     }
                 },
             };
@@ -227,10 +209,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const { error, data } = await supabase.auth.signUp(signUpOptions);
 
             if (error) {
+                console.error("AuthProvider - Sign up error:", error);
                 throw error;
             }
 
-            // Show a success message with a clear next step
+            console.log("AuthProvider - Sign up successful:", data);
+
+            if (options?.referralCode && data.user) {
+                localStorage.setItem('pending_referral_code', options.referralCode);
+                console.log("Saved referral code for later application:", options.referralCode);
+            }
+
             toast({
                 title: "Account created successfully",
                 description: "Please check your email to verify your account before logging in.",
@@ -240,7 +229,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error: any) {
             console.error("Error signing up:", error);
 
-            // More specific error message for database errors
             if (error.message?.includes("Database error")) {
                 toast({
                     title: "Sign up error",
@@ -255,11 +243,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signOut = async () => {
         try {
-            // Check if we have a session before trying to sign out
             const { data } = await supabase.auth.getSession();
 
             if (!data.session) {
-                // If no session exists, just clear local state without calling signOut API
                 setUser(null);
                 setSession(null);
                 toast({
@@ -270,13 +256,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             console.log("AuthProvider - Signing out");
-            // If we have a session, proceed with normal signOut
             const { error } = await supabase.auth.signOut();
             if (error) {
                 throw error;
             }
 
-            // Clear user and session state after successful signout
             setUser(null);
             setSession(null);
 
@@ -286,7 +270,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
         } catch (error: any) {
             console.error("Error during sign out:", error);
-            // Even if there's an error, we should still clear the local state
             setUser(null);
             setSession(null);
 

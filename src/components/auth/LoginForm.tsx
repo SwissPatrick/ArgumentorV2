@@ -25,11 +25,22 @@ export function LoginForm() {
     const { signIn, signUp } = useAuth();
     const [searchParams] = useSearchParams();
 
-    // Check for referral code in URL
+    // Check for referral code in URL or local storage
     useEffect(() => {
-        const code = searchParams.get("referral");
-        if (code) {
-            setReferralCode(code);
+        // First check URL
+        const codeFromUrl = searchParams.get("referral");
+
+        if (codeFromUrl) {
+            console.log("Referral code found in URL:", codeFromUrl);
+            setReferralCode(codeFromUrl);
+            return;
+        }
+
+        // Then check local storage
+        const savedCode = localStorage.getItem('pending_referral_code');
+        if (savedCode) {
+            console.log("Referral code found in local storage:", savedCode);
+            setReferralCode(savedCode);
         }
     }, [searchParams]);
 
@@ -57,6 +68,17 @@ export function LoginForm() {
 
         try {
             await signIn(email, password);
+
+            // Check if we have a pending referral code to apply
+            const pendingCode = localStorage.getItem('pending_referral_code');
+            if (pendingCode) {
+                // Clear the code from local storage
+                localStorage.removeItem('pending_referral_code');
+
+                // Here we could apply the referral code if needed
+                console.log("Found pending referral code after login:", pendingCode);
+                // You could add code here to apply the referral if you want
+            }
         } catch (error: any) {
             // Handle authentication errors
             let errorMessage = error.message;
@@ -109,12 +131,21 @@ export function LoginForm() {
         try {
             // Include referral code in user metadata if present
             const options = referralCode
-                ? { referralCode: referralCode.toUpperCase() }
+                ? { referralCode: referralCode }
                 : undefined;
+
+            console.log("Signing up with options:", options);
 
             await signUp(email, password, options);
             setEmailVerificationSent(true);
+
+            // Show success toast even if verification is required
+            toast({
+                title: "Sign up successful",
+                description: "Please check your email for verification instructions",
+            });
         } catch (error: any) {
+            console.error("Signup error:", error);
             let errorMessage = error.message;
 
             // Handle specific Supabase errors
