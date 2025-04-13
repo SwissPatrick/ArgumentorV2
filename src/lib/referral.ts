@@ -133,7 +133,7 @@ export const createReferralCode = async (): Promise<boolean> => {
 };
 
 /**
- * Redeems a referral code via Edge Function
+ * Redeems a referral code via Supabase Edge Function
  */
 export const redeemReferralCode = async (code: string): Promise<boolean> => {
     try {
@@ -154,11 +154,13 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
 
         if (error) {
             const message = error?.message ?? "Unexpected error";
+
             toast({
                 title: "Referral code error",
                 description: message,
                 variant: "destructive",
             });
+
             return false;
         }
 
