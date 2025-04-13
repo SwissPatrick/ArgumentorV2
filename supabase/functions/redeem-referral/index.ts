@@ -41,8 +41,12 @@ serve(async (req) => {
         // Call the database function to apply the referral bonus
         const { data, error } = await supabaseAdmin.rpc(
             'apply_referral_bonus',
-            { _referral_code: code, _referred_user_id: userId }
+            {
+                referral_code: code,
+                referred_user_id: userId,
+            }
         );
+
 
         if (error) {
             console.error("Error redeeming referral:", error);
