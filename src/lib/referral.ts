@@ -148,15 +148,22 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
             return false;
         }
 
-        const { data, error } = await supabase.functions.invoke("redeem-referral", {
+        const result = await supabase.functions.invoke("redeem-referral", {
             body: { code, userId: user.user.id },
         });
 
+        const { data, error } = result;
+
         if (error) {
-            const message = error?.message ?? "Unexpected error";
+            // This handles 409, 403, etc.
+            const status = error.status || 500;
+            const message =
+                data?.message ||
+                error.message ||
+                "There was a problem redeeming your referral code";
 
             toast({
-                title: "Referral code error",
+                title: "Could not redeem code",
                 description: message,
                 variant: "destructive",
             });
@@ -164,10 +171,10 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
             return false;
         }
 
-        if (!data.success) {
+        if (!data?.success) {
             toast({
                 title: "Could not redeem code",
-                description: data.message ?? "This code is invalid or has already been used.",
+                description: data?.message ?? "Invalid or already used referral code",
                 variant: "destructive",
             });
             return false;
@@ -176,16 +183,16 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
         toast({
             title: "Success!",
             description:
-                data.message ||
+                data?.message ||
                 "Referral code successfully redeemed. Enjoy your bonus credits!",
         });
 
         return true;
-    } catch (error: any) {
-        console.error("Error redeeming referral code:", error);
+    } catch (err: any) {
+        console.error("Unexpected error:", err);
         toast({
-            title: "Something went wrong",
-            description: error.message || "Unknown error occurred",
+            title: "Unexpected error",
+            description: err?.message || "Something went wrong",
             variant: "destructive",
         });
         return false;
