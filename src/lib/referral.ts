@@ -155,12 +155,20 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
         const { data, error } = result;
 
         if (error) {
-            // This handles 409, 403, etc.
-            const status = error.status || 500;
-            const message =
-                data?.message ||
-                error.message ||
-                "There was a problem redeeming your referral code";
+            let message = "There was a problem redeeming your referral code";
+
+            try {
+                // Try to extract actual message from function response
+                const res = error.response;
+                if (res) {
+                    const parsed = await res.json();
+                    if (parsed?.message) {
+                        message = parsed.message;
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to parse referral error response", e);
+            }
 
             toast({
                 title: "Could not redeem code",
