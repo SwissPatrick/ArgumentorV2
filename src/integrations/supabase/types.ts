@@ -39,19 +39,19 @@ export type Database = {
             referral_codes: {
                 Row: {
                     code: string
-                    created_at: string
+                    created_at: string | null
                     id: string
                     user_id: string
                 }
                 Insert: {
                     code: string
-                    created_at?: string
+                    created_at?: string | null
                     id?: string
                     user_id: string
                 }
                 Update: {
                     code?: string
-                    created_at?: string
+                    created_at?: string | null
                     id?: string
                     user_id?: string
                 }
@@ -59,25 +59,22 @@ export type Database = {
             }
             referral_uses: {
                 Row: {
+                    created_at: string | null
                     id: string
                     referral_code: string
-                    referred_id: string
-                    referrer_id: string
-                    used_at: string
+                    used_by: string
                 }
                 Insert: {
+                    created_at?: string | null
                     id?: string
                     referral_code: string
-                    referred_id: string
-                    referrer_id: string
-                    used_at?: string
+                    used_by: string
                 }
                 Update: {
+                    created_at?: string | null
                     id?: string
                     referral_code?: string
-                    referred_id?: string
-                    referrer_id?: string
-                    used_at?: string
+                    used_by?: string
                 }
                 Relationships: []
             }
@@ -192,7 +189,9 @@ export type Database = {
         }
         Functions: {
             apply_referral_bonus: {
-                Args: { _referral_code: string; _referred_user_id: string }
+                Args:
+                    | { _referral_code: string; _referred_user_id: string }
+                    | { _referral_code: string; _referred_user_id: string }
                 Returns: boolean
             }
             create_referral_code_for_new_user_manual: {

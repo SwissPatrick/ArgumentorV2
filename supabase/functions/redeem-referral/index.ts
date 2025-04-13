@@ -16,10 +16,9 @@ serve(async (req) => {
 
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-        // Create authenticated Supabase client
+        // Create authenticated Supabase client with service role key
         const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
         const { code, userId } = await req.json();
