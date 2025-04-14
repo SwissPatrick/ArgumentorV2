@@ -146,7 +146,7 @@ export const getUserSubscription = async (): Promise<Subscription> => {
             .from('user_subscriptions')
             .select('*')
             .eq('user_id', session.user.id)
-            .single();
+            .maybeSingle(); // avoids 406 if no rows returned
 
         if (error || !data) {
             console.error("Error fetching subscription:", error);
