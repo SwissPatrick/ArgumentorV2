@@ -17,7 +17,11 @@ export type ReferralInfo = {
 export const getUserReferralCode = async (): Promise<string | null> => {
     try {
         const { data: user } = await supabase.auth.getUser();
-        if (!user.user) return null;
+
+        if (!user.user) {
+            console.log("No authenticated user found");
+            return null;
+        }
 
         const { data, error } = await supabase
             .from("referral_codes")
@@ -25,14 +29,18 @@ export const getUserReferralCode = async (): Promise<string | null> => {
             .eq("user_id", user.user.id)
             .maybeSingle();
 
-        if (error && !error.message.includes("no rows")) {
-            console.error("Error fetching referral code:", error);
+        if (error) {
+            if (!error.message.includes("no rows")) {
+                console.error("Error fetching referral code:", error);
+            } else {
+                console.log("No referral code found for user");
+            }
             return null;
         }
 
         return data?.code || null;
     } catch (error) {
-        console.error("Unexpected error fetching referral code:", error);
+        console.error("Error fetching referral code:", error);
         return null;
     }
 };
@@ -42,6 +50,8 @@ export const getUserReferralCode = async (): Promise<string | null> => {
  */
 export const getReferralUsedCount = async (code: string): Promise<number> => {
     try {
+        if (!code) return 0;
+
         const { count, error } = await supabase
             .from("referral_uses")
             .select("*", { count: "exact", head: true })
@@ -54,22 +64,34 @@ export const getReferralUsedCount = async (code: string): Promise<number> => {
 
         return count || 0;
     } catch (error) {
-        console.error("Unexpected error fetching referral usage count:", error);
+        console.error("Error fetching referral usage count:", error);
         return 0;
     }
 };
 
 /**
  * Gets the full referral information for the current user
+ * Creates a code if one does not yet exist
  */
 export const getUserReferralInfo = async (): Promise<ReferralInfo | null> => {
     try {
-        const code = await getUserReferralCode();
+        let code = await getUserReferralCode();
+
+        if (!code) {
+            const created = await createReferralCode();
+            if (created) {
+                code = await getUserReferralCode();
+            }
+        }
+
         if (!code) return null;
 
         const usedByCount = await getReferralUsedCount(code);
 
-        return { code, usedByCount };
+        return {
+            code,
+            usedByCount,
+        };
     } catch (error) {
         console.error("Error getting referral info:", error);
         return null;
@@ -92,10 +114,10 @@ export const createReferralCode = async (): Promise<boolean> => {
 
         if (existingCode?.code) return true;
 
-        const generatedCode = Array.from({ length: 8 }, () =>
-            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[
-                Math.floor(Math.random() * 32)
-                ]
+        const generatedCode = Array.from(
+            { length: 8 },
+            () =>
+                "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]
         ).join("");
 
         const { error } = await supabase
@@ -112,7 +134,7 @@ export const createReferralCode = async (): Promise<boolean> => {
 
         return true;
     } catch (error) {
-        console.error("Unexpected error creating referral code:", error);
+        console.error("Error creating referral code:", error);
         return false;
     }
 };
@@ -123,10 +145,11 @@ export const createReferralCode = async (): Promise<boolean> => {
 export const redeemReferralCode = async (code: string): Promise<boolean> => {
     try {
         const { data: user } = await supabase.auth.getUser();
+
         if (!user.user) {
             toast({
                 title: "Authentication required",
-                description: "You must be logged in to redeem a referral code.",
+                description: "You must be logged in to redeem a referral code",
                 variant: "destructive",
             });
             return false;
@@ -139,13 +162,15 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
         const { data, error } = result;
 
         if (error) {
-            let message = "There was a problem redeeming your referral code.";
+            let message = "There was a problem redeeming your referral code";
 
             try {
                 const res = error.response;
                 if (res) {
                     const parsed = await res.json();
-                    if (parsed?.message) message = parsed.message;
+                    if (parsed?.message) {
+                        message = parsed.message;
+                    }
                 }
             } catch (e) {
                 console.warn("Failed to parse referral error response", e);
@@ -163,7 +188,7 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
         if (!data?.success) {
             toast({
                 title: "Could not redeem code",
-                description: data?.message ?? "Invalid or already used referral code.",
+                description: data?.message ?? "Invalid or already used referral code",
                 variant: "destructive",
             });
             return false;
@@ -172,16 +197,16 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
         toast({
             title: "Success!",
             description:
-                data?.message ??
-                "Referral code successfully redeemed. Bonus credits awarded!",
+                data?.message ||
+                "Referral code successfully redeemed. Enjoy your bonus credits!",
         });
 
         return true;
     } catch (err: any) {
-        console.error("Unexpected error redeeming referral code:", err);
+        console.error("Unexpected error:", err);
         toast({
             title: "Unexpected error",
-            description: err?.message || "Something went wrong.",
+            description: err?.message || "Something went wrong",
             variant: "destructive",
         });
         return false;
