@@ -11,6 +11,7 @@ interface BuilderContentProps {
     title: string;
     setTitle: (title: string) => void;
     argumentBlocks: ArgumentItem[];
+    setArgumentBlocks: (blocks: ArgumentItem[]) => void;
     onMoveBlockUp: (index: number) => void;
     onMoveBlockDown: (index: number) => void;
     onUpdateBlock: (id: string, content: string) => void;
@@ -28,6 +29,7 @@ export function BuilderContent({
                                    title,
                                    setTitle,
                                    argumentBlocks,
+                                   setArgumentBlocks,
                                    onMoveBlockUp,
                                    onMoveBlockDown,
                                    onUpdateBlock,
@@ -41,24 +43,25 @@ export function BuilderContent({
                                    selectedBlockId
                                }: BuilderContentProps) {
     return (
-        <Card className="mb-6 border bg-card/90 backdrop-blur-sm shadow-md transition-all hover:shadow-lg">
-            <CardHeader className="pb-3 border-b border-border/40">
+        <Card className="border bg-card/50 backdrop-blur-sm shadow-sm transition-all hover:shadow">
+            <CardHeader className="pb-2 border-b border-border/40">
                 <BuilderCardHeader
                     onOpenClearDialog={onOpenClearDialog}
                     onOpenSuggestionDialog={onOpenSuggestionDialog}
                     onAnalyzeArgument={onAnalyzeArgument}
                 />
             </CardHeader>
-            <CardContent className="p-5">
+            <CardContent className="p-4">
                 <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="text-lg font-medium mb-6 border-border/50 bg-background/50 focus:bg-background transition-colors"
+                    className="text-lg font-medium mb-4 border-border/50 bg-background/50 focus:bg-background transition-colors"
                     placeholder="Enter argument title..."
                 />
 
                 <ArgumentBlockList
                     argumentBlocks={argumentBlocks}
+                    setArgumentBlocks={setArgumentBlocks}
                     onMoveBlockUp={onMoveBlockUp}
                     onMoveBlockDown={onMoveBlockDown}
                     onUpdateBlock={onUpdateBlock}
@@ -69,14 +72,14 @@ export function BuilderContent({
                     selectedBlockId={selectedBlockId}
                 />
             </CardContent>
-            <CardFooter className="px-5 py-4 flex justify-end border-t border-border/30">
+            <CardFooter className="px-4 py-3 flex justify-end border-t border-border/30">
                 <Button
                     variant="outline"
                     size="sm"
-                    className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:border-destructive/60 transition-colors"
+                    className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive/50 transition-colors h-8"
                     onClick={onOpenClearDialog}
                 >
-                    <Trash2 className="mr-1 h-4 w-4" /> Clear Builder
+                    <Trash2 className="mr-1 h-3.5 w-3.5" /> Clear Builder
                 </Button>
             </CardFooter>
         </Card>

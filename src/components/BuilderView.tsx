@@ -1,32 +1,21 @@
-import { useState, useEffect } from "react";
-import { useArgumentBlocks } from "@/hooks/useArgumentBlocks";
-import { useAiSuggestions } from "@/hooks/useAiSuggestions";
-import { getUserSubscription } from "@/lib/subscription";
-import { BuilderContent } from "@/components/builder/BuilderContent";
-import { ApiErrorDisplay } from "@/components/builder/ApiErrorDisplay";
-import { ArgumentAnalyzer } from "@/components/ArgumentAnalyzer";
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Trash2, Plus, FileText } from "lucide-react";
+import { ArgumentBlockList } from "./builder/ArgumentBlockList";
 import { ClearBuilderDialog } from "./builder/ClearBuilderDialog";
 import { AddBlockDialog } from "./builder/AddBlockDialog";
-import { AISuggestionDialog } from "./builder/AISuggestionDialog";
-import { PremiumFeatureDialog } from "./PremiumFeatureDialog";
-import { useArgumentAnalysis } from "@/hooks/useArgumentAnalysis";
-import { BuilderSidebar } from "./BuilderSidebar";
+import { EmptyBuilderState } from "./EmptyBuilderState";
+import { TemplatesDialog } from "./builder/TemplatesDialog";
+import { useState } from "react";
+import { getTemplateById, ArgumentTemplate } from "@/lib/templates";
+import { toast } from "@/hooks/use-toast";
 
 interface BuilderViewProps {
     title: string;
     setTitle: (title: string) => void;
-    argumentBlocks: Array<{
-        id: string;
-        type: "premise" | "conclusion" | "evidence" | "objection" | "rebuttal";
-        content: string;
-        isAiGenerated?: boolean;
-    }>;
-    setArgumentBlocks: (blocks: Array<{
-        id: string;
-        type: "premise" | "conclusion" | "evidence" | "objection" | "rebuttal";
-        content: string;
-        isAiGenerated?: boolean;
-    }>) => void;
+    argumentBlocks: any[];
+    setArgumentBlocks: (blocks: any[]) => void;
     isClearConfirmOpen: boolean;
     setIsClearConfirmOpen: (isOpen: boolean) => void;
     isAddDialogOpen: boolean;
@@ -43,164 +32,127 @@ export function BuilderView({
                                 setIsClearConfirmOpen,
                                 isAddDialogOpen,
                                 setIsAddDialogOpen,
-                                onOpenAddDialog
+                                onOpenAddDialog,
                             }: BuilderViewProps) {
-    const [isSuggestionDialogOpen, setIsSuggestionDialogOpen] = useState(false);
-    const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-    const [subscription, setSubscription] = useState<Awaited<ReturnType<typeof getUserSubscription>>>(null);
-    const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(true);
-    const [savedSuggestions, setSavedSuggestions] = useState<Array<{
-        id: string;
-        type: string;
-        content: string;
-        isImplemented: boolean;
-    }>>([]);
+    const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
 
-    const blockOperations = useArgumentBlocks(argumentBlocks);
-    const { analysis, setAnalysis } = useArgumentAnalysis();
+    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTitle(e.target.value);
+    };
 
-    useEffect(() => {
-        blockOperations.setArgumentBlocks(argumentBlocks);
-    }, [argumentBlocks]);
-
-    useEffect(() => {
-        setArgumentBlocks(blockOperations.argumentBlocks);
-    }, [blockOperations.argumentBlocks, setArgumentBlocks]);
-
-    const aiSuggestions = useAiSuggestions(
-        blockOperations.argumentBlocks,
-        blockOperations.addAiSuggestion,
-        blockOperations.updateBlock
-    );
-
-    useEffect(() => {
-        loadSubscription();
-    }, []);
-
-    const loadSubscription = async () => {
-        setIsSubscriptionLoading(true);
-        try {
-            const sub = await getUserSubscription();
-            setSubscription(sub);
-        } catch (error) {
-            console.error("Error loading subscription:", error);
-        } finally {
-            setIsSubscriptionLoading(false);
+    const handleClearClick = () => {
+        if (argumentBlocks.length > 0) {
+            setIsClearConfirmOpen(true);
         }
     };
 
-    const isPremiumUser = subscription?.tier !== 'free';
-
-    const clearBuilder = () => {
-        blockOperations.clearBlocks();
-        setTitle("");
-        setIsClearConfirmOpen(false);
-        setAnalysis(null);
-        setSavedSuggestions([]);
+    const handleOpenTemplates = () => {
+        setIsTemplatesDialogOpen(true);
     };
 
-    const handleOpenAddDialog = () => {
-        setIsAddDialogOpen(true);
-        onOpenAddDialog();
-    };
-
-    const openFullAnalysis = () => {
-        if (!isPremiumUser) {
-            setIsPremiumDialogOpen(true);
-            return;
+    const handleTemplateSelect = (template: ArgumentTemplate) => {
+        if (argumentBlocks.length > 0) {
+            // Ask for confirmation if there are existing blocks
+            if (!confirm("Applying a template will replace your current work. Are you sure you want to continue?")) {
+                return;
+            }
         }
+
+        // Apply the template
+        setTitle(template.title);
+        setArgumentBlocks(template.blocks);
+
+        toast({
+            title: "Template applied",
+            description: `"${template.title}" template has been applied successfully.`,
+        });
     };
-
-    const addSuggestionToList = (type: string, content: string) => {
-        const newSuggestion = {
-            id: Date.now().toString(),
-            type,
-            content,
-            isImplemented: false
-        };
-
-        setSavedSuggestions(prev => [...prev, newSuggestion]);
-    };
-
-    const implementSuggestion = (id: string) => {
-        // Find the suggestion to implement
-        const suggestion = savedSuggestions.find(s => s.id === id);
-        if (!suggestion) return;
-
-        // Add it to the argument
-        blockOperations.addAiSuggestion(suggestion.type, suggestion.content);
-
-        // Mark it as implemented
-        setSavedSuggestions(prev =>
-            prev.map(s => s.id === id ? { ...s, isImplemented: true } : s)
-        );
-    };
-
-    if (aiSuggestions.apiError) {
-        return (
-            <div className="lg:col-span-3">
-                <ApiErrorDisplay error={aiSuggestions.apiError} />
-            </div>
-        );
-    }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-            <div className="lg:col-span-3 space-y-6">
-                <BuilderContent
-                    title={title}
-                    setTitle={setTitle}
-                    argumentBlocks={blockOperations.argumentBlocks}
-                    onMoveBlockUp={blockOperations.moveBlockUp}
-                    onMoveBlockDown={blockOperations.moveBlockDown}
-                    onUpdateBlock={blockOperations.updateBlock}
-                    onDeleteBlock={blockOperations.deleteBlock}
-                    onOpenAddDialog={handleOpenAddDialog}
-                    onOpenClearDialog={() => setIsClearConfirmOpen(true)}
-                    onOpenSuggestionDialog={() => setIsSuggestionDialogOpen(true)}
-                    onAnalyzeArgument={openFullAnalysis}
-                    onRequestBlockSuggestion={aiSuggestions.requestBlockLevelSuggestion}
-                    isGeneratingSuggestion={aiSuggestions.isGeneratingSuggestion}
-                    selectedBlockId={aiSuggestions.selectedBlockId}
-                />
-
-                {blockOperations.argumentBlocks.length > 0 && (
-                    <ArgumentAnalyzer
-                        argumentBlocks={blockOperations.argumentBlocks}
-                        onAddSuggestion={addSuggestionToList}
+        <div className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-4 md:items-center">
+                <div className="flex-1">
+                    <Input
+                        className="text-xl font-semibold h-12 placeholder:text-muted-foreground/50"
+                        placeholder="Enter your argument title..."
+                        value={title}
+                        onChange={handleTitleChange}
                     />
-                )}
-
-                <ClearBuilderDialog
-                    isOpen={isClearConfirmOpen}
-                    onOpenChange={setIsClearConfirmOpen}
-                    onClear={clearBuilder}
-                />
-
-                <AddBlockDialog
-                    isOpen={isAddDialogOpen}
-                    onOpenChange={setIsAddDialogOpen}
-                    onAddBlock={blockOperations.addBlock}
-                />
-
-                <AISuggestionDialog
-                    isOpen={isSuggestionDialogOpen}
-                    onOpenChange={setIsSuggestionDialogOpen}
-                    onRequestSuggestion={aiSuggestions.requestAISuggestion}
-                    isGeneratingSuggestion={aiSuggestions.isGeneratingSuggestion}
-                />
-
-                <PremiumFeatureDialog
-                    isOpen={isPremiumDialogOpen}
-                    onClose={() => setIsPremiumDialogOpen(false)}
-                    featureName="Full Argument Analysis"
-                    description="Upgrade to access complete argument analysis, including fallacy detection, strength scoring, and AI-powered improvement suggestions."
-                />
+                </div>
+                <div className="flex space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive"
+                        onClick={handleClearClick}
+                        disabled={argumentBlocks.length === 0}
+                    >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear
+                    </Button>
+                </div>
             </div>
 
-            <BuilderSidebar
-                savedSuggestions={savedSuggestions}
-                onImplementSuggestion={implementSuggestion}
+            {argumentBlocks.length === 0 ? (
+                <EmptyBuilderState onAddBlock={onOpenAddDialog} onUseTemplate={handleOpenTemplates} />
+            ) : (
+                <ArgumentBlockList
+                    argumentBlocks={argumentBlocks}
+                    setArgumentBlocks={setArgumentBlocks}
+                    onMoveBlockUp={() => {}}
+                    onMoveBlockDown={() => {}}
+                    onUpdateBlock={() => {}}
+                    onDeleteBlock={() => {}}
+                    onOpenAddDialog={onOpenAddDialog}
+                    onRequestBlockSuggestion={() => {}}
+                    isGeneratingSuggestion={false}
+                    selectedBlockId={null}
+                />
+            )}
+
+            {argumentBlocks.length > 0 && (
+                <div className="flex justify-center mt-8">
+                    <Button
+                        variant="outline"
+                        onClick={onOpenAddDialog}
+                        className="mx-2"
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Block
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={handleOpenTemplates}
+                        className="mx-2"
+                    >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Use Template
+                    </Button>
+                </div>
+            )}
+
+            <ClearBuilderDialog
+                isOpen={isClearConfirmOpen}
+                onOpenChange={setIsClearConfirmOpen}
+                onClear={() => {
+                    setArgumentBlocks([]);
+                    setIsClearConfirmOpen(false);
+                }}
+            />
+
+            <AddBlockDialog
+                isOpen={isAddDialogOpen}
+                onOpenChange={setIsAddDialogOpen}
+                onAddBlock={(type, content) => {
+                    setArgumentBlocks([...argumentBlocks, { type, content }]);
+                    setIsAddDialogOpen(false);
+                }}
+            />
+
+            <TemplatesDialog
+                isOpen={isTemplatesDialogOpen}
+                onClose={() => setIsTemplatesDialogOpen(false)}
+                onSelectTemplate={handleTemplateSelect}
             />
         </div>
     );

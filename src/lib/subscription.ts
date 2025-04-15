@@ -32,28 +32,29 @@ export const subscriptionTiers: SubscriptionTier[] = [
         id: "free",
         name: "Free",
         price: 0,
-        basicCredits: 10,
-        advancedCredits: 0,
-        maxSavedArguments: 2,
+        basicCredits: 25,
+        advancedCredits: 5,
+        maxSavedArguments: 3,
         features: [
             "Basic argument builder",
-            "10 basic credits for block-level AI suggestions",
-            "Save up to 2 arguments"
+            "25 basic credits for block-level AI suggestions",
+            "5 advanced credits for analysis",
+            "Save up to 3 arguments"
         ]
     },
     {
         id: "basic",
         name: "Basic",
         price: 7.99,
-        basicCredits: 25,
-        advancedCredits: 15,
-        maxSavedArguments: 5,
+        basicCredits: 75,
+        advancedCredits: 25,
+        maxSavedArguments: 10,
         features: [
             "Everything in Free",
-            "25 basic credits for block-level suggestions",
-            "15 advanced credits for full argument analysis",
+            "75 basic credits for block-level suggestions",
+            "25 advanced credits for full argument analysis",
             "Export to PDF",
-            "Save up to 5 arguments"
+            "Save up to 10 arguments"
         ],
         recommended: true
     },
@@ -61,26 +62,26 @@ export const subscriptionTiers: SubscriptionTier[] = [
         id: "premium",
         name: "Premium",
         price: 14.99,
-        basicCredits: 50,
-        advancedCredits: 25,
-        maxSavedArguments: 15,
+        basicCredits: 200,
+        advancedCredits: 50,
+        maxSavedArguments: 25,
         features: [
             "Everything in Basic",
-            "50 basic credits for block-level suggestions",
-            "25 advanced credits for full argument analysis",
+            "200 basic credits for block-level suggestions",
+            "50 advanced credits for full argument analysis",
             "Premium argument templates",
-            "Save up to 15 arguments"
+            "Save up to 25 arguments"
         ]
     }
 ];
 
 const defaultSubscription: Subscription = {
     tier: "free",
-    basicCreditsRemaining: 10,
-    advancedCreditsRemaining: 0,
-    maxBasicCredits: 10,
-    maxAdvancedCredits: 0,
-    maxSavedArguments: 2,
+    basicCreditsRemaining: 25,
+    advancedCreditsRemaining: 5,
+    maxBasicCredits: 25,
+    maxAdvancedCredits: 5,
+    maxSavedArguments: 3,
     features: {
         aiSuggestions: true,
         fullAnalysis: false,
@@ -146,7 +147,7 @@ export const getUserSubscription = async (): Promise<Subscription> => {
             .from('user_subscriptions')
             .select('*')
             .eq('user_id', session.user.id)
-            .maybeSingle(); // avoids 406 if no rows returned
+            .single();
 
         if (error || !data) {
             console.error("Error fetching subscription:", error);
@@ -381,23 +382,36 @@ export const getSavedArgumentsLimitInfo = async (): Promise<{
     }
 };
 
+/**
+ * Upgrades a user's subscription to a specific tier
+ * This ensures the user receives the correct number of credits based on their tier
+ */
 export const upgradeSubscription = async (tierId: string): Promise<boolean> => {
     try {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (!session) {
+            console.error("No active session when trying to upgrade subscription");
             return false;
         }
 
-        const maxBasicCredits = getMaxBasicCreditsForTier(tierId);
-        const maxAdvancedCredits = getMaxAdvancedCreditsForTier(tierId);
+        // Find the tier in our subscription tiers data
+        const tierInfo = subscriptionTiers.find(tier => tier.id === tierId);
 
+        if (!tierInfo) {
+            console.error(`Invalid tier ID: ${tierId}`);
+            return false;
+        }
+
+        console.log(`Upgrading user to ${tierInfo.name} tier with ${tierInfo.basicCredits} basic credits and ${tierInfo.advancedCredits} advanced credits`);
+
+        // Update the user's subscription with the correct number of credits for their tier
         const { error } = await supabase
             .from('user_subscriptions')
             .update({
                 tier: tierId,
-                basic_credits_remaining: maxBasicCredits,
-                advanced_credits_remaining: maxAdvancedCredits,
+                basic_credits_remaining: tierInfo.basicCredits,
+                advanced_credits_remaining: tierInfo.advancedCredits,
                 updated_at: new Date().toISOString()
             })
             .eq('user_id', session.user.id);
@@ -407,26 +421,27 @@ export const upgradeSubscription = async (tierId: string): Promise<boolean> => {
             return false;
         }
 
+        console.log(`Successfully upgraded to ${tierInfo.name} tier`);
         return true;
     } catch (error) {
-        console.error("Error in upgradeSubscription:", error);
+        console.error("Unexpected error in upgradeSubscription:", error);
         return false;
     }
 };
 
 function getMaxBasicCreditsForTier(tier: string): number {
     const tierInfo = subscriptionTiers.find(t => t.id === tier);
-    return tierInfo ? tierInfo.basicCredits : 10;
+    return tierInfo ? tierInfo.basicCredits : 25;
 }
 
 function getMaxAdvancedCreditsForTier(tier: string): number {
     const tierInfo = subscriptionTiers.find(t => t.id === tier);
-    return tierInfo ? tierInfo.advancedCredits : 0;
+    return tierInfo ? tierInfo.advancedCredits : 5;
 }
 
 function getMaxSavedArgumentsForTier(tier: string): number {
     const tierInfo = subscriptionTiers.find(t => t.id === tier);
-    return tierInfo ? tierInfo.maxSavedArguments : 2;
+    return tierInfo ? tierInfo.maxSavedArguments : 3;
 }
 
 function getFeaturesForTier(tier: string): Subscription['features'] {

@@ -1,0 +1,23 @@
+# Robots.txt file for Argumentor
+User-agent: *
+Allow: /
+
+# Specific rules for common crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+# Sitemap location
+Sitemap: https://argumentor.eu/sitemap.xml
+
+# Block certain folders if needed
+# Disallow: /admin/
+# Disallow: /private/

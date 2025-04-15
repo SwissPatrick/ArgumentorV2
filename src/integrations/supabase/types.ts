@@ -34,7 +34,15 @@ export type Database = {
                     id?: string
                     updated_at?: string
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "profiles_id_fkey"
+                        columns: ["id"]
+                        isOneToOne: true
+                        referencedRelation: "referral_stats"
+                        referencedColumns: ["user_id"]
+                    },
+                ]
             }
             referral_codes: {
                 Row: {
@@ -109,7 +117,15 @@ export type Database = {
                     updated_at?: string
                     user_id?: string
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "saved_arguments_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "referral_stats"
+                        referencedColumns: ["user_id"]
+                    },
+                ]
             }
             user_activity: {
                 Row: {
@@ -136,7 +152,15 @@ export type Database = {
                     performed_at?: string
                     user_id?: string
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "user_activity_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "referral_stats"
+                        referencedColumns: ["user_id"]
+                    },
+                ]
             }
             user_subscriptions: {
                 Row: {
@@ -181,18 +205,37 @@ export type Database = {
                     updated_at?: string
                     user_id?: string
                 }
-                Relationships: []
+                Relationships: [
+                    {
+                        foreignKeyName: "user_subscriptions_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "referral_stats"
+                        referencedColumns: ["user_id"]
+                    },
+                ]
             }
         }
         Views: {
-            [_ in never]: never
+            referral_stats: {
+                Row: {
+                    referral_code: string | null
+                    used_by_count: number | null
+                    user_id: string | null
+                }
+                Relationships: []
+            }
         }
         Functions: {
             apply_referral_bonus: {
                 Args:
                     | { _referral_code: string; _referred_user_id: string }
-                    | { _referral_code: string; _referred_user_id: string }
+                    | { referral_code: string; referred_user_id: string }
                 Returns: boolean
+            }
+            create_default_subscription: {
+                Args: { user_id: string }
+                Returns: undefined
             }
             create_referral_code_for_new_user_manual: {
                 Args: { user_id: string }
@@ -201,6 +244,13 @@ export type Database = {
             generate_random_code: {
                 Args: Record<PropertyKey, never>
                 Returns: string
+            }
+            get_user_referral_info: {
+                Args: Record<PropertyKey, never>
+                Returns: {
+                    code: string
+                    used_by_count: number
+                }[]
             }
         }
         Enums: {

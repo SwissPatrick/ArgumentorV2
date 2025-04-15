@@ -1,7 +1,6 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 import { ArgumentBlock } from "@/components/ArgumentBlock";
 import { EmptyBuilderState } from "@/components/EmptyBuilderState";
 
@@ -14,6 +13,7 @@ interface ArgumentItem {
 
 interface ArgumentBlockListProps {
     argumentBlocks: ArgumentItem[];
+    setArgumentBlocks: (blocks: ArgumentItem[]) => void;
     onMoveBlockUp: (index: number) => void;
     onMoveBlockDown: (index: number) => void;
     onUpdateBlock: (id: string, content: string) => void;
@@ -26,6 +26,7 @@ interface ArgumentBlockListProps {
 
 export function ArgumentBlockList({
                                       argumentBlocks,
+                                      setArgumentBlocks,
                                       onMoveBlockUp,
                                       onMoveBlockDown,
                                       onUpdateBlock,
@@ -35,19 +36,14 @@ export function ArgumentBlockList({
                                       isGeneratingSuggestion,
                                       selectedBlockId
                                   }: ArgumentBlockListProps) {
-    const handleEmptyStateAddBlock = () => {
-        console.log("Empty state add block button clicked");
-        onOpenAddDialog();
-    };
-
-    const addButtonText = argumentBlocks.length > 0 ? "Add Another Block" : "Add Your First Block";
+    const addButtonText = argumentBlocks.length > 0 ? "Add Block" : "Add Your First Block";
 
     return (
         <div>
             {argumentBlocks.length === 0 ? (
-                <EmptyBuilderState onStartNew={handleEmptyStateAddBlock} />
+                <EmptyBuilderState onAddBlock={onOpenAddDialog} onUseTemplate={() => {}} />
             ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {argumentBlocks.map((block, index) => (
                         <ArgumentBlock
                             key={block.id}
@@ -67,7 +63,7 @@ export function ArgumentBlockList({
                     ))}
 
                     <Button
-                        className="w-full mt-6 group hover:bg-primary/90 transition-all shadow-sm hover:shadow-md py-5"
+                        className="w-full mt-4 group hover:bg-primary/90 transition-all shadow-sm hover:shadow py-4"
                         onClick={onOpenAddDialog}
                     >
                         <Plus className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
