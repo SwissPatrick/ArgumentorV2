@@ -11,7 +11,14 @@ import {
     PenTool,
     CheckCircle,
     BrainCircuit,
-    Scale
+    Scale,
+    Brain,
+    FileCheck,
+    Sparkles,
+    Edit,
+    FileText,
+    Shield,
+    Zap
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -41,6 +48,40 @@ const HowItWorks = () => {
             sections.forEach((section) => observer.unobserve(section));
         };
     }, []);
+
+    // Define workflow steps with icons and descriptions
+    const workflowSteps = [
+        {
+            icon: Edit,
+            title: "Write",
+            description: "Create an initial structure with premises and a conclusion",
+            color: "bg-blue-100 text-blue-600"
+        },
+        {
+            icon: Brain,
+            title: "Analyze",
+            description: "Get AI feedback to strengthen your argument",
+            color: "bg-purple-100 text-purple-600"
+        },
+        {
+            icon: FileText,
+            title: "Add Evidence",
+            description: "Incorporate facts and examples that support your premises",
+            color: "bg-green-100 text-green-600"
+        },
+        {
+            icon: Shield,
+            title: "Address Objections",
+            description: "Add counterarguments and rebuttals to make your argument robust",
+            color: "bg-amber-100 text-amber-600"
+        },
+        {
+            icon: Zap,
+            title: "Refine",
+            description: "Use AI analysis to polish your argument structure and language",
+            color: "bg-rose-100 text-rose-600"
+        }
+    ];
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -186,7 +227,7 @@ const HowItWorks = () => {
 
                         <Separator className="my-12" />
 
-                        {/* Workflow section */}
+                        {/* Workflow section - Enhanced with animations and visual effects */}
                         <section
                             id="workflow"
                             className={`animated-section transition-all duration-700 transform ${
@@ -194,7 +235,9 @@ const HowItWorks = () => {
                             }`}
                         >
                             <div className="text-center mb-10">
-                                <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
+                                <div className="inline-block p-4 rounded-full bg-primary/10 mb-4">
+                                    <BookOpen className="h-12 w-12 text-primary animate-pulse" />
+                                </div>
                                 <h2 className="text-2xl md:text-3xl font-display font-semibold mb-4">
                                     Typical Workflow
                                 </h2>
@@ -203,53 +246,54 @@ const HowItWorks = () => {
                                 </p>
                             </div>
 
-                            <div className="grid md:grid-cols-5 gap-4 relative mt-16">
-                                {/* Connected line through steps */}
-                                <div className="hidden md:block absolute top-1/4 left-0 w-full h-0.5 bg-primary/20"></div>
+                            <div className="relative mt-20 px-4">
+                                {/* Connected gradient line through steps */}
+                                <div className="hidden md:block absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-blue-500/30 via-purple-500/40 to-rose-500/30 rounded-full"></div>
 
-                                {/* Workflow steps */}
-                                {[
-                                    {
-                                        title: "Write",
-                                        description: "Create an initial structure with premises and a conclusion"
-                                    },
-                                    {
-                                        title: "Analyze",
-                                        description: "Get AI feedback to strengthen your argument"
-                                    },
-                                    {
-                                        title: "Add Evidence",
-                                        description: "Incorporate facts and examples that support your premises"
-                                    },
-                                    {
-                                        title: "Address Objections",
-                                        description: "Add counterarguments and rebuttals to make your argument robust"
-                                    },
-                                    {
-                                        title: "Refine",
-                                        description: "Use AI analysis to polish your argument structure and language"
-                                    }
-                                ].map((step, index) => (
-                                    <div key={index} className="flex flex-col items-center">
-                                        <div className="relative z-10 w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-4 shadow-md">
-                                            <span className="text-primary-foreground font-semibold">{index + 1}</span>
+                                {/* Workflow steps with staggered animation */}
+                                <div className="grid md:grid-cols-5 gap-6 relative">
+                                    {workflowSteps.map((step, index) => (
+                                        <div
+                                            key={index}
+                                            className={`flex flex-col items-center transition-all duration-700 delay-${index * 100} 
+                                transform ${visibleSections.has('workflow')
+                                                ? 'opacity-100 translate-y-0'
+                                                : 'opacity-0 translate-y-10'}`}
+                                        >
+                                            <div className="relative z-10 w-16 h-16 rounded-full bg-card border-2 border-primary/20
+                                      flex items-center justify-center mb-4 shadow-md
+                                      transition-transform duration-300 hover:scale-110 group"
+                                            >
+                                                <div className={`w-12 h-12 rounded-full ${step.color.split(' ')[0]} flex items-center 
+                                        justify-center transition-all duration-300 group-hover:scale-110`}>
+                                                    <step.icon className={`h-6 w-6 ${step.color.split(' ')[1]}`} />
+                                                </div>
+                                                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary
+                                       flex items-center justify-center text-primary-foreground font-bold">
+                                                    {index + 1}
+                                                </div>
+                                            </div>
+                                            <h3 className="font-semibold text-lg mb-2 text-center">{step.title}</h3>
+                                            <p className="text-sm text-muted-foreground text-center">{step.description}</p>
                                         </div>
-                                        <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
-                                        <p className="text-sm text-muted-foreground text-center">{step.description}</p>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </section>
 
                         {/* Call to action */}
-                        <div className="mt-20 bg-muted rounded-lg p-8 text-center border border-border/50 shadow-sm">
+                        <div className="mt-20 bg-gradient-to-br from-muted/70 to-muted rounded-lg p-8 text-center border border-border/50 shadow-sm">
+                            <div className="mb-6">
+                                <Sparkles className="h-10 w-10 text-primary mx-auto" />
+                            </div>
                             <h3 className="text-xl md:text-2xl font-display font-semibold mb-4">Ready to build your first argument?</h3>
                             <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
                                 Start building a clear, logical, and persuasive argument now with our intuitive builder.
                             </p>
-                            <Button asChild size="lg" className="button-hover">
+                            <Button asChild size="lg" className="button-hover group">
                                 <Link to="/builder">
-                                    Go to Builder <ArrowRight className="ml-2 h-4 w-4" />
+                                    Go to Builder
+                                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
                         </div>

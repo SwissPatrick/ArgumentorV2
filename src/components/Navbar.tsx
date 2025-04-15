@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Auth } from "./Auth.tsx";
+import { Auth } from "./Auth";
+import { ThemeToggle } from "./theme/ThemeToggle";
 
 export function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -13,7 +14,7 @@ export function Navbar() {
                 <div className="flex items-center gap-2">
                     <Link to="/" className="flex items-center">
                         <img
-                            src="images/argumentorLogo.png"
+                            src="/images/argumentorLogo.png"
                             alt="Argumentor Logo"
                             className="h-8 md:h-10"
                         />
@@ -46,6 +47,7 @@ export function Navbar() {
                     >
                         About
                     </Link>
+                    <ThemeToggle />
                     <Auth />
                 </nav>
 
