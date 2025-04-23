@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,6 +57,7 @@ export function ArgumentAnalyzer({ argumentBlocks, onAddSuggestion }: ArgumentAn
 
     const handleAnalyze = async () => {
         if (!isPremiumUser) {
+            console.log("Opening premium feature dialog");
             setIsPremiumDialogOpen(true);
             return;
         }

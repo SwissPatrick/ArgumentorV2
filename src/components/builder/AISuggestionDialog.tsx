@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CreditsDisplay } from "./suggestion/CreditsDisplay";
@@ -37,9 +36,9 @@ export function AISuggestionDialog({
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Get AI Suggestion</DialogTitle>
+                    <DialogTitle>AI Assistant</DialogTitle>
                     <DialogDescription>
-                        Select the type of content you need help with. This uses 1 basic credit.
+                        Get AI suggestions to improve your argument. Uses 1 basic credit.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -67,7 +66,7 @@ export function AISuggestionDialog({
                     <Button
                         onClick={handleSubmit}
                         disabled={isGeneratingSuggestion || basicCredits <= 0 || isLoading}
-                        className="gap-1"
+                        className="gap-1 bg-amber-500 hover:bg-amber-600 text-white"
                     >
                         {isGeneratingSuggestion ? "Generating..." : isLoading ? "Loading..." : basicCredits <= 0 ? "No Basic Credits Left" : "Get Suggestion"}
                     </Button>

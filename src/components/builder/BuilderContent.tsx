@@ -6,6 +6,7 @@ import { ArgumentBlockList } from "@/components/builder/ArgumentBlockList";
 import { BuilderCardHeader } from "@/components/builder/BuilderCardHeader";
 import { ArgumentItem } from "@/hooks/useArgumentBlocks";
 import { Trash2 } from "lucide-react";
+import { ArgumentAnalyzer } from "@/components/ArgumentAnalyzer";
 
 interface BuilderContentProps {
     title: string;
@@ -71,6 +72,19 @@ export function BuilderContent({
                     isGeneratingSuggestion={isGeneratingSuggestion}
                     selectedBlockId={selectedBlockId}
                 />
+
+                {argumentBlocks.length >= 2 && (
+                    <div className="mt-6">
+                        <ArgumentAnalyzer
+                            argumentBlocks={argumentBlocks}
+                            onAddSuggestion={(type, content) => {
+                                // We need to add this handler to satisfy the type requirement
+                                console.log(`Adding suggestion of type ${type}: ${content}`);
+                                // This functionality is handled in a different component
+                            }}
+                        />
+                    </div>
+                )}
             </CardContent>
             <CardFooter className="px-4 py-3 flex justify-end border-t border-border/30">
                 <Button

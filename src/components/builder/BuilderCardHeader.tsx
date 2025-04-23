@@ -30,19 +30,19 @@ export function BuilderCardHeader({
                     <Button
                         variant="outline"
                         size="sm"
-                        className="border-primary/30 hover:border-primary/60 transition-colors"
+                        className="border-amber-500/30 hover:border-amber-500/60 text-amber-600 hover:text-amber-700 transition-colors"
                         onClick={onOpenSuggestionDialog}
                     >
-                        <Sparkles className="mr-1 h-4 w-4 text-amber-500" /> AI Suggestion
+                        <Sparkles className="mr-1 h-4 w-4" /> AI Assistant
                     </Button>
 
                     <Button
                         variant="default"
                         size="sm"
                         onClick={onAnalyzeArgument}
-                        className="hidden md:flex bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all"
+                        className="bg-purple-600 hover:bg-purple-700 text-white transition-all"
                     >
-                        <Sparkles className="mr-1 h-4 w-4" /> Analyze Argument
+                        <Sparkles className="mr-1 h-4 w-4" /> Analyze
                     </Button>
                 </div>
             </div>
