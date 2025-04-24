@@ -20,6 +20,7 @@ serve(async (req) => {
 
     try {
         // Get admin emails from environment variable with fallback
+        // Note: Keeping Deno.env.get as this is a Deno edge function
         const adminEmailsString = Deno.env.get("ADMIN_EMAILS") || "";
         console.log("Admin emails config:", adminEmailsString ? "Present (redacted)" : "Empty");
 

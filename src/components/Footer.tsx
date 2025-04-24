@@ -6,7 +6,7 @@ export function Footer() {
                     <div className="md:col-span-2">
                         <div className="flex items-center mb-4">
                             <img
-                                src="/public/images/ArgumentorLogo.png"
+                                src="/lovable-uploads/e6998c2e-484f-48f3-98b4-6596e29095f2.png"
                                 alt="Argumentor Logo"
                                 className="h-10 mr-2"
                             />

@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HelpCircle } from "lucide-react";
 import { useArgumentAnalysis } from "@/hooks/useArgumentAnalysis";
 import { useSuggestionHandler } from "@/hooks/useSuggestionHandler";
-import { getUserSubscription } from "@/lib/subscription";
+import { getUserSubscription, hasAdvancedCredits } from "@/lib/subscription";
 import { PremiumFeatureDialog } from "./PremiumFeatureDialog";
 import { AnalyzerHeader } from "./analyzer/AnalyzerHeader";
 import { AnalysisTab } from "./analyzer/AnalysisTab";
@@ -25,6 +26,7 @@ interface ArgumentAnalyzerProps {
 export function ArgumentAnalyzer({ argumentBlocks, onAddSuggestion }: ArgumentAnalyzerProps) {
     const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
     const [subscription, setSubscription] = useState<Awaited<ReturnType<typeof getUserSubscription>>>(null);
+    const [hasCredits, setHasCredits] = useState(false);
 
     const {
         activeTab,
@@ -42,6 +44,7 @@ export function ArgumentAnalyzer({ argumentBlocks, onAddSuggestion }: ArgumentAn
 
     useEffect(() => {
         loadSubscription();
+        checkAdvancedCredits();
     }, []);
 
     const loadSubscription = async () => {
@@ -53,11 +56,22 @@ export function ArgumentAnalyzer({ argumentBlocks, onAddSuggestion }: ArgumentAn
         }
     };
 
-    const isPremiumUser = subscription?.tier !== 'free';
+    const checkAdvancedCredits = async () => {
+        try {
+            const credits = await hasAdvancedCredits();
+            setHasCredits(credits);
+        } catch (error) {
+            console.error("Error checking advanced credits:", error);
+            setHasCredits(false);
+        }
+    };
+
+    // Instead of checking premium tier, check if user has advanced credits
+    const canUseAnalysis = hasCredits;
 
     const handleAnalyze = async () => {
-        if (!isPremiumUser) {
-            console.log("Opening premium feature dialog");
+        if (!canUseAnalysis) {
+            console.log("Opening premium feature dialog - no advanced credits available");
             setIsPremiumDialogOpen(true);
             return;
         }
@@ -87,7 +101,7 @@ export function ArgumentAnalyzer({ argumentBlocks, onAddSuggestion }: ArgumentAn
         <Card className={`transition-all duration-300 ${isCollapsed ? 'max-h-24 overflow-hidden' : ''}`}>
             <CardHeader className="p-6 pb-0">
                 <AnalyzerHeader
-                    isPremiumUser={isPremiumUser}
+                    isPremiumUser={canUseAnalysis}
                     isCollapsed={isCollapsed}
                     toggleCollapse={toggleCollapse}
                 />
@@ -134,7 +148,7 @@ export function ArgumentAnalyzer({ argumentBlocks, onAddSuggestion }: ArgumentAn
                         <OptionsTab
                             customPrompt={customPrompt}
                             setCustomPrompt={setCustomPrompt}
-                            isPremiumUser={isPremiumUser}
+                            isPremiumUser={canUseAnalysis}
                             addAnalysisOption={addAnalysisOption}
                         />
                     </TabsContent>
@@ -148,7 +162,7 @@ export function ArgumentAnalyzer({ argumentBlocks, onAddSuggestion }: ArgumentAn
                     isOpen={isPremiumDialogOpen}
                     onClose={() => setIsPremiumDialogOpen(false)}
                     featureName="Full Argument Analysis"
-                    description="Upgrade to access complete argument analysis, including fallacy detection, strength scoring, and AI-powered improvement suggestions."
+                    description="You don't have any advanced credits remaining. Upgrade to get more advanced credits for argument analysis, including fallacy detection, strength scoring, and AI-powered improvement suggestions."
                 />
             </CardContent>
         </Card>

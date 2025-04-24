@@ -13,7 +13,6 @@ interface ArgumentItem {
 
 interface ArgumentBlockListProps {
     argumentBlocks: ArgumentItem[];
-    setArgumentBlocks: (blocks: ArgumentItem[]) => void;
     onMoveBlockUp: (index: number) => void;
     onMoveBlockDown: (index: number) => void;
     onUpdateBlock: (id: string, content: string) => void;
@@ -26,7 +25,6 @@ interface ArgumentBlockListProps {
 
 export function ArgumentBlockList({
                                       argumentBlocks,
-                                      setArgumentBlocks,
                                       onMoveBlockUp,
                                       onMoveBlockDown,
                                       onUpdateBlock,
@@ -36,12 +34,16 @@ export function ArgumentBlockList({
                                       isGeneratingSuggestion,
                                       selectedBlockId
                                   }: ArgumentBlockListProps) {
+    const handleEmptyStateAddBlock = () => {
+        onOpenAddDialog();
+    };
+
     const addButtonText = argumentBlocks.length > 0 ? "Add Block" : "Add Your First Block";
 
     return (
         <div>
             {argumentBlocks.length === 0 ? (
-                <EmptyBuilderState onAddBlock={onOpenAddDialog} onUseTemplate={() => {}} />
+                <EmptyBuilderState onStartNew={handleEmptyStateAddBlock} />
             ) : (
                 <div className="space-y-3">
                     {argumentBlocks.map((block, index) => (

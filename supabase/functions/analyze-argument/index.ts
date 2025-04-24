@@ -1,4 +1,3 @@
-//@ts-ignore
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -60,6 +59,7 @@ const serveWithCORS = async (req: Request) => {
             .join("\n\n");
 
         // Get OpenAI API key from environment
+        // Note: Keeping Deno.env.get as this is a Deno edge function
         const openAiKey = Deno.env.get("OPENAI_API_KEY");
         if (!openAiKey) {
             return new Response(
@@ -140,7 +140,7 @@ const serveWithCORS = async (req: Request) => {
 
         let analysisResult;
         try {
-            // Clean the response text to handle potential Markdown code blocks
+            // Clean the response text to handle potential markdown code blocks
             const cleanedResponse = responseText
                 .replace(/```json\s*/g, '')
                 .replace(/```\s*$/g, '')

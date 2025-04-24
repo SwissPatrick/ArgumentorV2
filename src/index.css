@@ -80,7 +80,7 @@
     display: inline-block;
     width: 3px;
     height: 1em;
-    background-color: currentColor;
+    background-color: hsl(var(--secondary));
     margin-left: 1px;
     vertical-align: text-bottom;
     animation: blink 0.8s infinite;
@@ -99,6 +99,11 @@
 /* Typography */
 .font-display {
     font-family: 'Manrope', sans-serif;
+}
+
+/* Gradient backgrounds */
+.radial-gradient {
+    background: radial-gradient(circle at top center, rgb(248, 248, 255) 0%, rgb(241, 241, 255) 25%, rgb(239, 237, 255) 50%, rgb(237, 235, 254) 75%, rgb(235, 233, 253) 100%);
 }
 
 /* Button effects */

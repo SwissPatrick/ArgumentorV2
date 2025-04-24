@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,39 +38,35 @@ export function BuilderSidebar({ savedSuggestions, onImplementSuggestion }: Buil
         return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800 border-gray-200";
     };
 
-    // If no saved suggestions, show a placeholder
+    // If no saved suggestions, show a simplified placeholder
     if (savedSuggestions.length === 0) {
         return (
             <div className="lg:col-span-1">
-                <Card className="sticky top-24 bg-card/90 backdrop-blur-sm shadow-md border-border/50 transition-all hover:shadow-lg">
+                <Card className="sticky top-24 bg-card/50 backdrop-blur-sm shadow-sm border-border/40">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center justify-between">
+                        <CardTitle className="text-sm flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <ListPlus className="h-5 w-5 text-primary" />
-                                <span>Suggestions List</span>
+                                <ListPlus className="h-4 w-4 text-primary" />
+                                <span>Suggestions</span>
                             </div>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md text-xs border border-amber-200">
-                                            <Info className="h-3 w-3" />
-                                            <span>Advanced Feature</span>
-                                        </div>
+                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                                     </TooltipTrigger>
                                     <TooltipContent side="top">
                                         <p className="max-w-xs text-xs">
-                                            This feature requires advanced credits. Available with premium subscriptions.
+                                            Advanced feature available with premium subscriptions.
                                         </p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 text-center text-muted-foreground">
-                        <div className="flex flex-col items-center gap-3">
-                            <Lightbulb className="h-10 w-10 text-muted-foreground/30" />
-                            <p>No suggestions added yet</p>
-                            <p className="text-sm">Use "Add to List" from the AI Analysis to save suggestions here</p>
+                    <CardContent className="p-4 text-center text-muted-foreground">
+                        <div className="flex flex-col items-center gap-2">
+                            <Lightbulb className="h-8 w-8 text-muted-foreground/30" />
+                            <p className="text-sm">No suggestions yet</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -84,57 +79,44 @@ export function BuilderSidebar({ savedSuggestions, onImplementSuggestion }: Buil
 
     return (
         <div className="lg:col-span-1">
-            <Card className="sticky top-24 bg-card/90 backdrop-blur-sm shadow-md border-border/50 transition-all hover:shadow-lg">
+            <Card className="sticky top-24 bg-card/50 backdrop-blur-sm shadow-sm border-border/40">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <ListPlus className="h-5 w-5 text-primary" />
-                            <span>Suggestions List</span>
-                            <Badge variant="outline" className="ml-1 text-xs bg-primary/10 text-primary border-primary/30">
-                                {pendingSuggestions.length}
-                            </Badge>
+                            <ListPlus className="h-4 w-4 text-primary" />
+                            <span>Suggestions</span>
+                            {pendingSuggestions.length > 0 && (
+                                <Badge variant="outline" className="ml-1 text-xs bg-primary/10 text-primary border-primary/30">
+                                    {pendingSuggestions.length}
+                                </Badge>
+                            )}
                         </div>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md text-xs border border-amber-200">
-                                        <Info className="h-3 w-3" />
-                                        <span>Advanced Feature</span>
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                    <p className="max-w-xs text-xs">
-                                        This feature requires advanced credits. Available with premium subscriptions.
-                                    </p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                    <ScrollArea className="h-[400px] pr-3">
+                <CardContent className="p-3">
+                    <ScrollArea className="h-[350px] pr-2">
                         {pendingSuggestions.length > 0 && (
-                            <div className="space-y-4">
-                                <h3 className="text-sm font-medium text-muted-foreground">Pending</h3>
+                            <div className="space-y-3">
+                                <h3 className="text-xs font-medium text-muted-foreground">Pending</h3>
                                 {pendingSuggestions.map((suggestion) => (
                                     <div
                                         key={`pending-${suggestion.id}`}
-                                        className="border rounded-md p-3 transition-all bg-card hover:shadow-sm hover:border-primary/20"
+                                        className="border rounded-md p-2 transition-all bg-card hover:shadow-sm hover:border-primary/20"
                                     >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <Badge variant="outline" className={`capitalize ${getTypeColor(suggestion.type)}`}>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <Badge variant="outline" className={`capitalize text-xs ${getTypeColor(suggestion.type)}`}>
                                                 {suggestion.type}
                                             </Badge>
                                         </div>
-                                        <p className="text-sm text-muted-foreground mb-3 line-clamp-3">{suggestion.content}</p>
+                                        <p className="text-xs text-muted-foreground mb-2 line-clamp-3">{suggestion.content}</p>
                                         <div className="flex justify-end">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="text-xs bg-primary/5 hover:bg-primary/10 text-primary"
+                                                className="text-xs h-7 bg-primary/5 hover:bg-primary/10 text-primary"
                                                 onClick={() => handleImplementSuggestion(suggestion.id)}
                                             >
-                                                <Plus className="h-3 w-3 mr-1" /> Add to Argument
+                                                <Plus className="h-3 w-3 mr-1" /> Add
                                             </Button>
                                         </div>
                                     </div>
@@ -143,22 +125,22 @@ export function BuilderSidebar({ savedSuggestions, onImplementSuggestion }: Buil
                         )}
 
                         {implementedSuggestions.length > 0 && (
-                            <div className="space-y-4 mt-6">
-                                <h3 className="text-sm font-medium text-muted-foreground">Implemented</h3>
+                            <div className="space-y-3 mt-4">
+                                <h3 className="text-xs font-medium text-muted-foreground">Implemented</h3>
                                 {implementedSuggestions.map((suggestion) => (
                                     <div
                                         key={`implemented-${suggestion.id}`}
-                                        className="border rounded-md p-3 transition-all bg-muted/30 border-green-100"
+                                        className="border rounded-md p-2 transition-all bg-muted/30 border-green-100"
                                     >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <Badge variant="outline" className={`capitalize ${getTypeColor(suggestion.type)}`}>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <Badge variant="outline" className={`capitalize text-xs ${getTypeColor(suggestion.type)}`}>
                                                 {suggestion.type}
                                             </Badge>
                                         </div>
-                                        <p className="text-sm text-muted-foreground opacity-75 mb-3 line-clamp-2">{suggestion.content}</p>
+                                        <p className="text-xs text-muted-foreground opacity-75 mb-1 line-clamp-2">{suggestion.content}</p>
                                         <div className="flex justify-end">
                                             <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                                <Check className="h-3 w-3 mr-1" /> Added to argument
+                                                <Check className="h-3 w-3 mr-1" /> Added
                                             </Badge>
                                         </div>
                                     </div>

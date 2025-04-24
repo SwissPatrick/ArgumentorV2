@@ -12,7 +12,6 @@ interface BuilderContentProps {
     title: string;
     setTitle: (title: string) => void;
     argumentBlocks: ArgumentItem[];
-    setArgumentBlocks: (blocks: ArgumentItem[]) => void;
     onMoveBlockUp: (index: number) => void;
     onMoveBlockDown: (index: number) => void;
     onUpdateBlock: (id: string, content: string) => void;
@@ -24,13 +23,13 @@ interface BuilderContentProps {
     onRequestBlockSuggestion: (blockId: string) => void;
     isGeneratingSuggestion: boolean;
     selectedBlockId: string | null;
+    onAddSuggestion: (type: string, content: string) => void;
 }
 
 export function BuilderContent({
                                    title,
                                    setTitle,
                                    argumentBlocks,
-                                   setArgumentBlocks,
                                    onMoveBlockUp,
                                    onMoveBlockDown,
                                    onUpdateBlock,
@@ -41,7 +40,8 @@ export function BuilderContent({
                                    onAnalyzeArgument,
                                    onRequestBlockSuggestion,
                                    isGeneratingSuggestion,
-                                   selectedBlockId
+                                   selectedBlockId,
+                                   onAddSuggestion
                                }: BuilderContentProps) {
     return (
         <Card className="border bg-card/50 backdrop-blur-sm shadow-sm transition-all hover:shadow">
@@ -62,7 +62,6 @@ export function BuilderContent({
 
                 <ArgumentBlockList
                     argumentBlocks={argumentBlocks}
-                    setArgumentBlocks={setArgumentBlocks}
                     onMoveBlockUp={onMoveBlockUp}
                     onMoveBlockDown={onMoveBlockDown}
                     onUpdateBlock={onUpdateBlock}
@@ -74,14 +73,10 @@ export function BuilderContent({
                 />
 
                 {argumentBlocks.length >= 2 && (
-                    <div className="mt-6">
+                    <div className="mt-6 border-t border-border/30 pt-6">
                         <ArgumentAnalyzer
                             argumentBlocks={argumentBlocks}
-                            onAddSuggestion={(type, content) => {
-                                // We need to add this handler to satisfy the type requirement
-                                console.log(`Adding suggestion of type ${type}: ${content}`);
-                                // This functionality is handled in a different component
-                            }}
+                            onAddSuggestion={onAddSuggestion}
                         />
                     </div>
                 )}

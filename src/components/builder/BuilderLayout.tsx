@@ -36,19 +36,9 @@ export function BuilderLayout() {
         setIsAddDialogOpen(true);
     };
 
-    // Log component state for debugging
-    useEffect(() => {
-        console.log("BuilderLayout rendered with:", {
-            blockCount: argumentBlocks.length,
-            title: title,
-            currentId: currentArgumentId,
-            isSaving: isSaving
-        });
-    }, [argumentBlocks.length, title, currentArgumentId, isSaving]);
-
     return (
-        <div className="container px-4 max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-card/40 backdrop-blur-sm p-4 md:p-5 rounded-lg shadow-sm border border-border/30">
+        <div className="container px-4 max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 bg-card/50 backdrop-blur-sm p-4 md:p-5 rounded-lg shadow-sm border border-border/30">
                 <BuilderHeader title={title} />
                 <BuilderActions
                     onSave={saveArgument}

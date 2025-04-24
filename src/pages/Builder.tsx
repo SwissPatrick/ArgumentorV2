@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { BuilderLoadingState } from "@/components/builder/BuilderLoadingState";
 import { BuilderLayout } from "@/components/builder/BuilderLayout";
 import { BuilderProvider } from "@/context/BuilderContext";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -18,13 +17,6 @@ const Builder = () => {
     const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        console.log("Builder page - Auth state:", {
-            loading,
-            user: user ? "User present" : "No user",
-            initializing: isInitializing,
-            redirectAttempted: redirectAttempted.current
-        });
-
         // Clear any existing timeout to prevent memory leaks
         if (initTimeoutRef.current) {
             clearTimeout(initTimeoutRef.current);
@@ -33,16 +25,14 @@ const Builder = () => {
 
         // Safety timeout to prevent getting stuck
         const safetyTimeout = setTimeout(() => {
-            console.log("Builder - Safety timeout triggered");
             setIsInitializing(false);
-        }, 5000); // Reduced from 8000 to 5000ms
+        }, 5000);
 
         initTimeoutRef.current = safetyTimeout;
 
         // Only proceed with checks if we haven't already redirected
         if (!loading && !redirectAttempted.current) {
             if (!user) {
-                console.log("Builder - No user, redirecting to auth");
                 toast({
                     title: "Authentication required",
                     description: "Please log in to access the builder",
@@ -81,9 +71,6 @@ const Builder = () => {
                         <h2 className="text-xl font-medium mb-2">Loading the Argument Builder</h2>
                         <p className="text-muted-foreground text-center">
                             Preparing your workspace...
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-4">
-                            If this takes too long, try refreshing the page
                         </p>
                     </div>
                 </main>

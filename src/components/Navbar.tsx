@@ -1,9 +1,9 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Auth } from "./Auth";
-import { ThemeToggle } from "./theme/ThemeToggle";
 
 export function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -47,7 +47,6 @@ export function Navbar() {
                     >
                         About
                     </Link>
-                    <ThemeToggle />
                     <Auth />
                 </nav>
 

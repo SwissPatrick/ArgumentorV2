@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -24,12 +25,13 @@ export const getUserReferralCode = async (): Promise<string | null> => {
         }
 
         const { data, error } = await supabase
-            .from("referral_codes")
-            .select("code")
-            .eq("user_id", user.user.id)
+            .from('referral_codes')
+            .select('code')
+            .eq('user_id', user.user.id)
             .maybeSingle();
 
         if (error) {
+            // Only log as error if it's not a "no rows returned" error
             if (!error.message.includes("no rows")) {
                 console.error("Error fetching referral code:", error);
             } else {
@@ -53,9 +55,9 @@ export const getReferralUsedCount = async (code: string): Promise<number> => {
         if (!code) return 0;
 
         const { count, error } = await supabase
-            .from("referral_uses")
-            .select("*", { count: "exact", head: true })
-            .eq("referral_code", code);
+            .from('referral_uses')
+            .select('*', { count: 'exact', head: true })
+            .eq('referral_code', code);
 
         if (error) {
             console.error("Error fetching referral usage count:", error);
@@ -71,26 +73,24 @@ export const getReferralUsedCount = async (code: string): Promise<number> => {
 
 /**
  * Gets the full referral information for the current user
- * Creates a code if one does not yet exist
  */
 export const getUserReferralInfo = async (): Promise<ReferralInfo | null> => {
     try {
-        let code = await getUserReferralCode();
+        // Get the user's referral code
+        const code = await getUserReferralCode();
 
         if (!code) {
-            const created = await createReferralCode();
-            if (created) {
-                code = await getUserReferralCode();
-            }
+            // No need to try to create one automatically or show errors
+            // The user can explicitly request a code later
+            return null;
         }
 
-        if (!code) return null;
-
+        // Get the count of users who have used this code
         const usedByCount = await getReferralUsedCount(code);
 
         return {
             code,
-            usedByCount,
+            usedByCount
         };
     } catch (error) {
         console.error("Error getting referral info:", error);
@@ -100,34 +100,48 @@ export const getUserReferralInfo = async (): Promise<ReferralInfo | null> => {
 
 /**
  * Creates a referral code for the current user if one doesn't exist
+ * This is separated from the signup process to avoid permission errors
  */
 export const createReferralCode = async (): Promise<boolean> => {
     try {
         const { data: user } = await supabase.auth.getUser();
-        if (!user.user) return false;
 
+        if (!user.user) {
+            console.log("No authenticated user found");
+            return false;
+        }
+
+        // Check if a code already exists
         const { data: existingCode } = await supabase
-            .from("referral_codes")
-            .select("code")
-            .eq("user_id", user.user.id)
+            .from('referral_codes')
+            .select('code')
+            .eq('user_id', user.user.id)
             .maybeSingle();
 
-        if (existingCode?.code) return true;
+        if (existingCode?.code) {
+            // A code already exists
+            return true;
+        }
 
+        // Generate a unique referral code (8 characters)
         const generatedCode = Array.from(
             { length: 8 },
-            () =>
-                "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]
+            () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]
         ).join("");
 
+        // Insert the new code
         const { error } = await supabase
-            .from("referral_codes")
-            .upsert(
-                { user_id: user.user.id, code: generatedCode },
-                { onConflict: "user_id", ignoreDuplicates: true }
-            );
+            .from('referral_codes')
+            .upsert({
+                user_id: user.user.id,
+                code: generatedCode
+            }, {
+                onConflict: 'user_id',
+                ignoreDuplicates: true
+            });
 
         if (error) {
+            // Log the error but don't throw
             console.error("Error creating referral code:", error);
             return false;
         }
@@ -140,13 +154,14 @@ export const createReferralCode = async (): Promise<boolean> => {
 };
 
 /**
- * Redeems a referral code via Supabase Edge Function
+ * Redeems a referral code
  */
 export const redeemReferralCode = async (code: string): Promise<boolean> => {
     try {
         const { data: user } = await supabase.auth.getUser();
 
         if (!user.user) {
+            console.log("No authenticated user found");
             toast({
                 title: "Authentication required",
                 description: "You must be logged in to redeem a referral code",
@@ -155,40 +170,24 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
             return false;
         }
 
-        const result = await supabase.functions.invoke("redeem-referral", {
-            body: { code, userId: user.user.id },
+        const { data, error } = await supabase.functions.invoke('redeem-referral', {
+            body: { code, userId: user.user.id }
         });
 
-        const { data, error } = result;
-
         if (error) {
-            let message = "There was a problem redeeming your referral code";
-
-            try {
-                const res = error.response;
-                if (res) {
-                    const parsed = await res.json();
-                    if (parsed?.message) {
-                        message = parsed.message;
-                    }
-                }
-            } catch (e) {
-                console.warn("Failed to parse referral error response", e);
-            }
-
+            console.error("Error redeeming referral code:", error);
             toast({
-                title: "Could not redeem code",
-                description: message,
+                title: "Error",
+                description: error.message || "There was a problem redeeming your referral code",
                 variant: "destructive",
             });
-
             return false;
         }
 
-        if (!data?.success) {
+        if (!data.success) {
             toast({
-                title: "Could not redeem code",
-                description: data?.message ?? "Invalid or already used referral code",
+                title: "Invalid referral code",
+                description: data.message || "This code is invalid or has already been used",
                 variant: "destructive",
             });
             return false;
@@ -196,17 +195,15 @@ export const redeemReferralCode = async (code: string): Promise<boolean> => {
 
         toast({
             title: "Success!",
-            description:
-                data?.message ||
-                "Referral code successfully redeemed. Enjoy your bonus credits!",
+            description: data.message || "Referral code successfully redeemed",
         });
 
         return true;
-    } catch (err: any) {
-        console.error("Unexpected error:", err);
+    } catch (error: any) {
+        console.error("Error redeeming referral code:", error);
         toast({
-            title: "Unexpected error",
-            description: err?.message || "Something went wrong",
+            title: "Error",
+            description: error.message || "There was a problem redeeming your referral code",
             variant: "destructive",
         });
         return false;
