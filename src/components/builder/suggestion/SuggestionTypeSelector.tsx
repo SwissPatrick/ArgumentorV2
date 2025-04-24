@@ -1,7 +1,7 @@
 
 import { BookOpen, FileText, MessageCircle, Search, Shield } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getSuggestionTypeIcon, getSuggestionTypeDescription } from "./suggestionUtils";
+import { getSuggestionTypeIcon, getSuggestionTypeDescription } from "./SuggestionUtils";
 
 interface SuggestionTypeSelectorProps {
     suggestionType: string;
